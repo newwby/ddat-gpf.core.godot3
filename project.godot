@@ -8,9 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "InputEventAction",
+"class": "CompoundInputEventAction",
+"language": "GDScript",
+"path": "res://pkg_input_manager/src/class_compound_input_event.gd"
+} ]
 _global_script_class_icons={
-
+"CompoundInputEventAction": ""
 }
 
 [application]
