@@ -16,7 +16,14 @@ _global_script_class_icons={
 [application]
 
 config/name="##### Godot Framework Workspace"
-config/icon="res://icon.png"
+config/description="workspace to focus on developing modular frameworks for godot projects"
+run/main_scene="res://placeholder_main.tscn"
+config/icon="res://ddat_icon.png"
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
 
 [rendering]
 
