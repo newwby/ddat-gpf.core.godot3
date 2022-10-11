@@ -16,6 +16,19 @@ func validate_file_path(file_path):
 		return true
 
 
+# if arg force_validate is set will create the directory if it doesn't find it
+func validate_directory(directory_path: String, force_validate:= false):
+	var directory_certifier = Directory.new()
+	if directory_certifier.dir_exists(directory_path):
+		return true
+	else:
+		if directory_certifier.make_dir_recursive(directory_path) == OK\
+		and force_validate:
+			return true
+		else:
+			return false
+
+
 func open_and_return_file_as_string(file_path):
 	if not validate_file_path(file_path):
 		return ""
