@@ -1,7 +1,8 @@
 
-class_name CompoundActionExtension
 
-extends InputEvent
+extends Resource
+
+class_name CompoundActionExtension
 
 # An input management class designed to work alongside InputActionEvents.
 
@@ -23,7 +24,7 @@ const ACTION_SHORT_HOLD_PRESS: int = 50
 # minimum system uticks for an action to be held to constitute a 'long press'
 const ACTION_LONG_HOLD_PRESS: int = 200
 
-e
+export var test_var := 0
 
 # system uticks when action was last first pressed or released
 # used for calculating recency of action
@@ -66,4 +67,7 @@ var is_action_long_pressed: bool = false
 #############################################################################
 
 # ADD PUBLIC METHODS FOR SETTING PRIVATE PARAMETERS ABOVE
+
+func _init():
+	pass
 
