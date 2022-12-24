@@ -1,6 +1,6 @@
 extends GameGlobal
 
-class_name GlobalData
+#class_name GlobalData
 
 ##############################################################################
 #

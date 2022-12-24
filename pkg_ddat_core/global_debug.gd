@@ -1,4 +1,6 @@
-extends Node
+extends GameGlobal
+
+#class_name GlobalDebug
 
 ##############################################################################
 #

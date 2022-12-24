@@ -13,9 +13,21 @@ _global_script_classes=[ {
 "class": "CompoundActionExtension",
 "language": "GDScript",
 "path": "res://pkg_input_manager/src/class/class_compound_action_extension.gd"
+}, {
+"base": "Node",
+"class": "GameGlobal",
+"language": "GDScript",
+"path": "res://pkg_ddat_core/class_global.gd"
+}, {
+"base": "GameGlobal",
+"class": "GlobalInput",
+"language": "GDScript",
+"path": "res://pkg_input_manager/global_input.gd"
 } ]
 _global_script_class_icons={
-"CompoundActionExtension": ""
+"CompoundActionExtension": "",
+"GameGlobal": "",
+"GlobalInput": ""
 }
 
 [application]
@@ -25,10 +37,19 @@ config/description="workspace to focus on developing modular frameworks for godo
 run/main_scene="res://placeholder_main.tscn"
 config/icon="res://ddat_icon.png"
 
+[autoload]
+
+GlobalData="*res://pkg_ddat_core/global_data.gd"
+GlobalDebug="*res://pkg_ddat_core/global_debug.gd"
+
 [display]
 
 window/size/width=1920
 window/size/height=1080
+
+[editor]
+
+script_templates_search_path="res://default_scripts"
 
 [rendering]
 
