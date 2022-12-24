@@ -1,4 +1,62 @@
-extends Node
+
+extends GameGlobal
+
+# disable if using an an autoload
+class_name GlobalInput
+#
+# This is a slightly modified version of the 3.0 (rev 5f5a9378)  style guide
+# Changes are documented below with <- indicators
+# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html
+#
+#01. tool
+#02. extends <- switched with class_name (originally 02.)
+#03. class_name <- switched with extends (originally 03.)
+#
+##############################################################################
+#
+#04a. dependencies <- new addition
+#
+#04b. # docstring
+#
+##############################################################################
+#
+# Declare member variables here. Examples:
+# var a = 2
+# var b = "text"
+#
+#05. signals
+#06. enums
+#07. constants
+#08. exported variables
+#09. public variables
+#10. private variables
+#11. onready variables
+#
+##############################################################################
+#
+#12. optional built-in virtual _init method
+#13. built-in virtual _ready method
+#14. remaining built-in virtual methods
+#15. public methods
+#16. private methods
+
+##############################################################################
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+#func _process(delta):
+#	pass
+
+
+
+# DEPENDENCIES
+# GlobalData
+# GlobalDebug
 
 # GlobalInputManager
 # This is designed as an autoload singleton
@@ -14,7 +72,7 @@ const TEMP_DATA_PATH = "res://pkg_input_manager/def/input_actions/"
 
 # manual load instead of using project autoloader
 # temporary remove on framework export
-const GLOBAL_DATA_PATH = "res://pkg_input_manager/src/singleton/global_data.gd"
+#const GLOBAL_DATA_PATH = "res://pkg_input_manager/src/singleton/global_data.gd"
 #onready var GlobalData = preload(GLOBAL_DATA_PATH).new()
 
 ###############################################################################
@@ -32,7 +90,7 @@ const GLOBAL_DATA_PATH = "res://pkg_input_manager/src/singleton/global_data.gd"
 # resource file within the designation definition folder
 func _export_project_input_map_to_disk():
 	# temporary whilst autloader isn't present
-	var GlobalData = preload(GLOBAL_DATA_PATH).new()
+#	var GlobalData = preload(GLOBAL_DATA_PATH).new()
 	# base file path building variables
 	var base_directory_path = TEMP_DATA_PATH
 	var directory_path
@@ -80,8 +138,13 @@ func _export_project_input_map_to_disk():
 				if ResourceSaver.save(\
 						base_directory_path+directory_path+file_path,\
 						input_event) != OK:
+					
 					# if not saved then error print to debug
-					print_debug(get_stack())
+					if OS.is_debug_build():
+						print_debug(get_stack())
+					else:
+						# can't get stack if release build
+						print("_export_project_input_map_to_disk error")
 			else:
 				print_debug(get_stack())
 			print(base_directory_path+directory_path+file_path)
