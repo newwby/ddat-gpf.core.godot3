@@ -10,19 +10,11 @@ class_name GameGlobal
 #	2) Allow configuration options to be easily set on all globals.
 #
 ##############################################################################
-#
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-#
-#05. signals
-#06. enums
-#07. constants
-#08. exported variables
-#09. public variables
-#10. private variables
-#11. onready variables
-#
+
+# whether to log comprehensive information about the global classes behaviour
+# this is for developer debugging purposes and shouldn't be set normally
+var verbose_logging = false
+
 ##############################################################################
 #
 #12. optional built-in virtual _init method
@@ -90,11 +82,11 @@ class_name GameGlobal
 ###############################################################################
 #
 #
-#func autoload_on_ready_logging(singleton_name: String, is_readied: bool = false):
-#	var readying_is_readied = "ready!" if is_readied else "readying..."
-#	print(" ###[{name}]### {statement}".format(\
-#			{"name" : singleton_name,\
-#			"statement" : readying_is_readied}))
+func log_on_ready(singleton_name: String, is_readied: bool = false):
+	var readying_is_readied = "ready!" if is_readied else "readying..."
+	print(" ###[{name}]### {statement}".format(\
+			{"name" : singleton_name,\
+			"statement" : readying_is_readied}))
 #
 #
 #func autoload_method_logging(\
