@@ -3,17 +3,147 @@ extends GameGlobal
 #class_name GlobalDebug
 
 ##############################################################################
-#
-# GameGlobal is the base class of all DDAT Globals
-# Its purpose is twofold.
-#	1) Avoid duplication of code between globals.
-#	2) Allow configuration options to be easily set on all globals.
+
+# DDAT Debug Manager (or, GlobalDebug) is a singleton designed to aid in
+# debugging projects, through error logging, faciliating exposure  of game
+# parameters to the developer, and allowing the developer to quickly add
+# 'god-mode' actions accessible through a simple UI.
 
 ##############################################################################
 
-const UNIT_TEST_ENTRY_LOG_TO_CONSOLE = false
-
+# developer flag, if set then all errors called through the log_error method
+# will pause project execution through a false assertion (this functionality
+# only applies to project builds with the debugger enabled).
+# This flag has no effect on non-debugger/release builds.
+const ASSERT_ALL_ERRRORS = false
+# developer flag, if set all errors called through log_error will, in any
+# build with the debugger enabled, raise the error in the debugger instead of
+# as a print statement. No effect on non-debugger/release builds.
+const PUSH_ERRORS_TO_DEBUGGER = true
+# developer flag, if set the debugger will print a full stack trace (verbose),
+# when log_error encounters an error. If unset only a partial/pruned stack
+# trace will be included. No effect on non-debugger/release builds.
 const PRINT_FULL_STACK_TRACE = true
+
+###############################################################################
+
+
+# debug manager prints some basic information about the user when ready
+# with stdout.verbose_logging
+func _ready():
+	# get basic information on the user
+	var user_datetime = OS.get_datetime()
+	var user_model_name = OS.get_model_name()
+	var user_name = OS.get_name()
+	
+	# convert the user datetime into something human-readable
+	var user_date_as_string =\
+			str(user_datetime["year"])+\
+			"/"+str(user_datetime["month"])+\
+			"/"+str(user_datetime["day"])
+	# seperate into both date and time
+	var user_time_as_string =\
+			str(user_datetime["hour"])+\
+			":"+str(user_datetime["minute"])+\
+			":"+str(user_datetime["second"])
+	
+	print("debug manager readied at: "+\
+			user_date_as_string+\
+			" | "+\
+			user_time_as_string)
+	print("[user] {name}\n{model}".format({\
+			"name": user_name,\
+			"model": user_model_name}))
+
+
+###############################################################################
+
+# use GlobalDebug.LogError() in methods at points where you do not expect
+# the project to reach
+# it is best practice to at least call this method with the method name of the
+# caller, as release builds (non-debugger enabled builds) cannot pass detailed
+# stack information.
+# As an optional second argument, you may pass a more detailed string or
+# code to help you locate the error.
+# in release builds only these arguments will be printed to console/log.
+# in debug builds, depending on developer settings, stack traces, error
+# warnings, and project pausing can be forced through this method.
+static func log_error(calling_method: String, error_string: String = "") -> void:
+	# build error string through this method then print at end of method
+	# open all errors with a new line to keep them noticeable in the log
+	var print_string = "\nDBGMGR raised error"
+	
+	# whether release or debug build, basic information must be logged
+	print_string += " at {method}".format(calling_method)
+	if error_string != "":
+		print_string += " [error code: {error}]".format(error_string)
+	
+	# debug builds have additional error logging behaviour
+	if OS.is_debug_build():
+		# get stack trace, split into something more readable
+		var full_stack_trace = get_stack()
+		var error_stack_trace = full_stack_trace[1]
+		var error_func_id = error_stack_trace["function"]
+		var error_node_id = error_stack_trace["source"]
+		var error_line_id = error_stack_trace["line"]
+		# entire stack trace is verbose, so multi-line for readability
+		
+		print_string += "\nStack Trace: [{f}] [{s}] [{l}]".format({\
+				"f": error_func_id,
+				"s": error_node_id,
+				"l": error_line_id})
+		print_string += "\nFull Stack Trace: "
+	
+	# close all errors with a new line to keep them noticeable in the log
+	print_string += "\n"
+	
+	# with debugger running, and flag set, push as error rather than log print
+	if OS.is_debug_build() and PUSH_ERRORS_TO_DEBUGGER:
+		push_error(print_string)
+	else:
+		print(print_string)
+	
+	# if the appropriate flag is enabled, pause project on error call
+	if OS.is_debug_build() and ASSERT_ALL_ERRRORS:
+		assert(false, "fatal error, see last error")
+
+
+###############################################################################
+
+# TODO
+
+#debug stat tracking panel
+# - dev uses signal to update a dict with name (key) and value
+# - info panel updates automatically whenever the dict data changes
+# - info panel alignment and instantiation (under canvas layer) done as part of global debug
+#	- info panel orders itself alphabetically
+#	- info panel inits canvas layer scaled to base project resolution but dev can override
+# - option(oos) category organisation; default blank enum dev can customise
+#	- info panel gets subheadings & dividers, empty category == hide
+# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
+#
+#debug action menu
+# - dict to add a new method, key is button text and value is method name in file
+# - after dev updates dict they add a method to be called when button is pressed
+# - buttons without found methods aren't shown when panel is called
+# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
+#
+#debug logger function
+# - uses isDebugBuild to read whether to get stack trace
+# - otherwise just logs to console with print
+
+# write tests for
+# log_error()
+
+##############################################################################
+
+func legacy_methods_below():
+	pass
+
+
+###############################################################################
+
+const UNIT_TEST_ENTRY_LOG_TO_CONSOLE = false
 
 var is_disk_log_called_this_runtime = false
 
@@ -30,28 +160,15 @@ var release_build_log_to_godot_file_logger = true
 
 var unit_test_log = []
 
+
 ###############################################################################
 
-# initial debug log statements
-func _ready():
-	if verbose_logging:
-		log_on_ready(name, false)
-	var datetime = OS.get_datetime()
-	var date_string = str(datetime["year"])+"/"+str(datetime["month"])+"/"+str(datetime["day"])
-	var timestamp_string = str(datetime["hour"])+":"+str(datetime["minute"])+":"+str(datetime["second"])
-	print("debug log start: "+date_string+" | "+timestamp_string)
-	print("["+OS.get_model_name()+"]")
-	print("["+OS.get_name()+"]")
-	# emptyline
-	print()
-	if verbose_logging:
-		log_on_ready(name, true)
 
-
-# override of error logging for build 0.2.6
-func log_error(error_string: String = ""):
-	print(error_string)
-	pass
+## override of error logging for build 0.2.6
+#func log_error(error_string: String = ""):
+#	if not verbose_logging:
+#		print("debug manager raised error, enable verbose logging or run in debug mode")
+#	pass
 
 # expansion of error logging capabilities
 func log_error_ext(error_string: String = ""):
