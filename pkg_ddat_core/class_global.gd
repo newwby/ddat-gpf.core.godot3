@@ -78,10 +78,18 @@ var verbose_logging = false
 #	else:
 #		enable_verbose_logging = false
 #
-#
+
+##############
+
+
+func _ready():
+	if verbose_logging:
+		log_on_ready(name, true)
+
+
 ###############################################################################
-#
-#
+
+
 func log_on_ready(singleton_name: String, is_readied: bool = false):
 	var readying_is_readied = "ready!" if is_readied else "readying..."
 	print(" ###[{name}]### {statement}".format(\
