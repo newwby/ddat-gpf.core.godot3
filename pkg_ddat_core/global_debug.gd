@@ -63,20 +63,28 @@ func _ready():
 # it is best practice to at least call this method with the method name of the
 # caller, as release builds (non-debugger enabled builds) cannot pass detailed
 # stack information.
-# As an optional second argument, you may pass a more detailed string or
+# As an optional third argument, you may pass a more detailed string or
 # code to help you locate the error.
 # in release builds only these arguments will be printed to console/log.
 # in debug builds, depending on developer settings, stack traces, error
 # warnings, and project pausing can be forced through this method.
-static func log_error(calling_method: String, error_string: String = "") -> void:
+static func log_error(\
+		calling_script: String = "",\
+		calling_method: String = "",\
+		error_string: String = "") -> void:
 	# build error string through this method then print at end of method
 	# open all errors with a new line to keep them noticeable in the log
 	var print_string = "\nDBGMGR raised error"
 	
 	# whether release or debug build, basic information must be logged
-	print_string += " at {method}".format(calling_method)
+	if calling_script != "":
+		print_string += " at {script}".format({"script": calling_script})
+	
+	if calling_method != "":
+		print_string += " in {method}".format({"method": calling_method})
+		
 	if error_string != "":
-		print_string += " [error code: {error}]".format(error_string)
+		print_string += " [error code: {error}]".format({"error": error_string})
 	
 	# debug builds have additional error logging behaviour
 	if OS.is_debug_build():
@@ -230,7 +238,7 @@ func _log_error_to_disk(error_string):
 		print("global_debug calling _log_error_to_disk()")
 
 	# log cycling
-	var current_file_content
+#	var current_file_content
 	if not is_disk_log_called_this_runtime:
 		# removed due to lack of globalRef
 		
