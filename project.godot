@@ -17,7 +17,7 @@ _global_script_classes=[ {
 "base": "Node",
 "class": "GameGlobal",
 "language": "GDScript",
-"path": "res://pkg_ddat_core/class_global.gd"
+"path": "res://pkg_ddat_core/src/class/class_global.gd"
 }, {
 "base": "GameGlobal",
 "class": "GlobalInput",
@@ -41,8 +41,8 @@ config/icon="res://ddat_icon.png"
 
 [autoload]
 
-GlobalData="*res://pkg_ddat_core/global_data.gd"
-GlobalDebug="*res://pkg_ddat_core/global_debug.gd"
+GlobalData="*res://pkg_ddat_core/src/autoload/global_data.gd"
+GlobalDebug="*res://pkg_ddat_core/src/autoload/global_debug.gd"
 
 [debug]
 
