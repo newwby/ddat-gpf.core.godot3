@@ -9,7 +9,45 @@ extends GameGlobal
 # parameters to the developer, and allowing the developer to quickly add
 # 'god-mode' actions accessible through a simple UI.
 
+# TODO
+
+# instantiate and ready/setup/validate debug info overlay on startup
+
+#debug stat tracking panel
+# - dev uses signal to update a dict with name (key) and value
+# - info panel updates automatically whenever the dict data changes
+# - info panel alignment and instantiation (under canvas layer) done as part of global debug
+#	- info panel orders itself alphabetically
+#	- info panel inits canvas layer scaled to base project resolution but dev can override
+# - option(oos) category organisation; default blank enum dev can customise
+#	- info panel gets subheadings & dividers, empty category == hide
+# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
+#
+#debug action menu
+# - dict to add a new method, key is button text and value is method name in file
+# - after dev updates dict they add a method to be called when button is pressed
+# - buttons without found methods aren't shown when panel is called
+# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
+#
+#debug logger function
+# - uses isDebugBuild to read whether to get stack trace
+# - otherwise just logs to console with print
+
+# write tests for
+# log_error()
+
+# update method returns for -> void and other
+# do so in infoOverlay also
+
 ##############################################################################
+
+# the debug info overlay is a child scene of GlobalDebug which is hidden
+# by default in release builds (and visible by default in debug builds),
+# consisting of a vbox column of key/value label node pairs on the side
+# of the viewport. This allows the developer to set signals or setters within
+# their own code to automatically push changes in important values to somewhere
+# visible ingame. This is useful to get feedback in unstable release builds.
+signal update_debug_info_overlay(item_key, item_value)
 
 # developer flag, if set then all errors called through the log_error method
 # will pause project execution through a false assertion (this functionality
@@ -57,6 +95,24 @@ func _ready():
 
 
 ###############################################################################
+
+# todo fill out log success method
+# similar to log error without asserts/stacktraces/errorPushing
+# don't multiline it either
+# is good practice to include a log success under verbose logging
+# where 
+# perhaps include global debug setup for verbose logging instead of
+# including within each and every script?
+
+# verboseLogging is an arg in this method, and defaults to false
+# but can be set to be passed by the caller so individual scripts can have
+# their own verbose logging constant which can be set on/off
+# either the argument, or a globalDebug constant, has to be set to get the
+# actual bool for whether to continue with log_success
+# basically if not LogSuccess: return, where LogSuccess == (verbose+gdbglog)
+static func log_success(calling_script, calling_method, success_string):
+	print(calling_script, calling_method, success_string)
+
 
 # use GlobalDebug.LogError() in methods at points where you do not expect
 # the project to reach
@@ -116,32 +172,18 @@ static func log_error(\
 		assert(false, "fatal error, see last error")
 
 
-###############################################################################
+# arg1 is the key for the debug item.
+# this argument should be different when the dev wishes to update the debug
+# info overlay for a different debug item, e.g. use a separate key for player
+# health, a separate key for player position, etc.
+# arg1 shoulod always be a string key
+# arg2 can be any type, but it will be converted to string before it is set
+# to the text for the value label in the relevant debug info item container
+func update_debug_info(debug_item_key: String, debug_item_value):
+	emit_signal("update_debug_info_overlay",
+			debug_item_key,
+			debug_item_value)
 
-# TODO
-
-#debug stat tracking panel
-# - dev uses signal to update a dict with name (key) and value
-# - info panel updates automatically whenever the dict data changes
-# - info panel alignment and instantiation (under canvas layer) done as part of global debug
-#	- info panel orders itself alphabetically
-#	- info panel inits canvas layer scaled to base project resolution but dev can override
-# - option(oos) category organisation; default blank enum dev can customise
-#	- info panel gets subheadings & dividers, empty category == hide
-# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
-#
-#debug action menu
-# - dict to add a new method, key is button text and value is method name in file
-# - after dev updates dict they add a method to be called when button is pressed
-# - buttons without found methods aren't shown when panel is called
-# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
-#
-#debug logger function
-# - uses isDebugBuild to read whether to get stack trace
-# - otherwise just logs to console with print
-
-# write tests for
-# log_error()
 
 ##############################################################################
 
