@@ -41,11 +41,16 @@ const NODE_NAME_DEBUG_ITEM_LABEL_VALUE := "Value"
 const GROUP_STRING_DEBUG_ITEM_LABEL_VALUE :=\
 		"group_ddat_debug_manager_info_overlay_value_labels"
 
-
 # proportion of the viewport to set item label minimum size to
 # if adjusting make sure to set this to a fractional value (default 0.04)
 const DEBUG_ITEM_VALUE_MIN_SIZE_FRACTIONAL = 0.04
 
+# this dict stores debug values passed to the info overlay (via globalDebug)
+# when the update_debug_info method is called, this dict is updated
+# when this dict is updated the setter for this dict calls 
+var debug_values = {}
+
+# these are node paths to the major nodes in the debug info overlay scene
 onready var debug_edge_margin_node: MarginContainer =\
 		$Margin
 onready var debug_info_column_node: VBoxContainer =\
@@ -58,24 +63,54 @@ onready var debug_item_container_default_node: HBoxContainer =\
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	var _ready_logging = ""
 	# set initial size based on current viewport, then prepare for
 	# any future occurence of the viewport size changing and moving elements
 	_on_viewport_resized_resize_info_overlay()
-	if get_viewport().connect("size_changed",\
-			self, "_on_viewport_resized_resize_info_overlay") != OK\
-	and VERBOSE_LOGGING:
+	if get_viewport().connect("size_changed",
+			self, "_on_viewport_resized_resize_info_overlay") != OK:
+		# report error on failure to get signal
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
-		
+	else:
+		if VERBOSE_LOGGING:
+			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "view.connect")
+	
 	# configure the default/template item container
-	if _setup_info_item_container(debug_item_container_default_node) != OK\
-	and VERBOSE_LOGGING:
+	if _setup_info_item_container(debug_item_container_default_node) != OK:
+		# report error on failure to initially configure debug item container
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
-		
+	else:
+		if VERBOSE_LOGGING:
+			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "itemcon.setup")
+	
+	# set the connection to globalDebug so when globalDebug.update_debug_info
+	# method is called, it redirects to _update_debug_item_container method
+	if GlobalDebug.connect("update_debug_info_overlay",
+			self, "_update_debug_item_container") != OK:
+		# report error on failure to link debug info voerlay to globalDebug
+		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
+	else:
+		if VERBOSE_LOGGING:
+			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "itemcon.setup")
 
 
 ##############################################################################
 
 
+# if not found duplicate a new item container & call _setup_info_item_container
+func _update_debug_item_container(\
+		item_container_key: String,
+		new_value):
+	pass
+	# todo add container found code
+	# todo add container not found code
+
+
+
+##############################################################################
+
+
+# todo add verbose logging checks
 func _setup_info_item_container(passed_item_container: HBoxContainer):
 	# you can pass any hbox container child of the info column,
 	# as long as it has two labels,
@@ -92,8 +127,11 @@ func _setup_info_item_container(passed_item_container: HBoxContainer):
 			and (label_node_key is Label)\
 			and (label_node_value is Label)
 	if not validation_check:
-		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container")
+		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container", "val")
 		return ERR_UNCONFIGURED
+	else:
+		if VERBOSE_LOGGING:
+			GlobalDebug.log_success(SCRIPT_NAME, "_setup_info_item_container", "val")
 	
 	# assign grouping
 	if not label_node_value.is_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE):
