@@ -14,16 +14,17 @@ extends Control
 # container and add its value.
 
 # TODO
-# add an open source font to ddat core, preferably a KenneyNL font
-# add Public Function to update debug values
-# hide default item container on init
-# default show on debugBuild
-# add button to show/hide on press
-# add secondary confirmation on release builds, or toggle to disable (rw style)
-# add support for debug values that hide over time after no updates
-# add support for renaming debug keys
-# add developer support for setting margin
-# add support for text colour
+#// finish test scene/project
+#// add an open source font to ddat core, preferably a KenneyNL font
+#// add Public Function to update debug values
+#// hide default item container on init
+#// default show on debugBuild
+#// add button to show/hide on press
+#// add secondary confirmation on release builds, or toggle to disable (rw style)
+#// add support for debug values that hide over time after no updates
+#// add support for renaming debug keys
+#// add developer support for setting margin
+#// add support for text colour
 
 ##############################################################################
 
@@ -72,16 +73,16 @@ func _ready():
 		# report error on failure to get signal
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
 	else:
-		if VERBOSE_LOGGING:
-			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "view.connect")
+		GlobalDebug.log_success(VERBOSE_LOGGING,\
+				SCRIPT_NAME, "_ready", "view.connect")
 	
 	# configure the default/template item container
 	if _setup_info_item_container(debug_item_container_default_node) != OK:
 		# report error on failure to initially configure debug item container
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
 	else:
-		if VERBOSE_LOGGING:
-			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "itemcon.setup")
+		GlobalDebug.log_success(VERBOSE_LOGGING,\
+				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
 	# set the connection to globalDebug so when globalDebug.update_debug_info
 	# method is called, it redirects to _update_debug_item_container method
@@ -90,8 +91,8 @@ func _ready():
 		# report error on failure to link debug info voerlay to globalDebug
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
 	else:
-		if VERBOSE_LOGGING:
-			GlobalDebug.log_success(SCRIPT_NAME, "_ready", "itemcon.setup")
+		GlobalDebug.log_success(VERBOSE_LOGGING,\
+				SCRIPT_NAME, "_ready", "itemcon.setup")
 
 
 ##############################################################################
@@ -102,6 +103,9 @@ func _update_debug_item_container(\
 		item_container_key: String,
 		new_value):
 	pass
+	# unused vars temporary
+	item_container_key = item_container_key
+	new_value = new_value
 	# todo add container found code
 	# todo add container not found code
 
@@ -130,8 +134,8 @@ func _setup_info_item_container(passed_item_container: HBoxContainer):
 		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container", "val")
 		return ERR_UNCONFIGURED
 	else:
-		if VERBOSE_LOGGING:
-			GlobalDebug.log_success(SCRIPT_NAME, "_setup_info_item_container", "val")
+		GlobalDebug.log_success(VERBOSE_LOGGING,\
+				SCRIPT_NAME, "_setup_info_item_container", "val")
 	
 	# assign grouping
 	if not label_node_value.is_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE):
