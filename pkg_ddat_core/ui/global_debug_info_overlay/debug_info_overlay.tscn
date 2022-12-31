@@ -2,7 +2,6 @@
 
 [ext_resource path="res://pkg_ddat_core/ui/global_debug_info_overlay/debug_info_overlay.gd" type="Script" id=1]
 
-
 [node name="DebugInfoOverlay" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
