@@ -11,9 +11,19 @@ extends GameGlobal
 
 # TODO
 
-# instantiate and ready/setup/validate debug info overlay on startup
+#// instantiate and ready/setup/validate debug info overlay on startup
+#// write tests for # log_error() # log_success()
+#// update method returns for -> void and other in globalDebug
+#// update method returns for -> void and other in infoOverlay also
 
-#debug stat tracking panel
+# [globalDebug sample scene]
+#include log_error prints, log_success prints,
+# verbose_logging arguments (comment explaining why again, ref log_success),
+# behaviour of debugInfoOverlay via tracking data like player input, time since scene started
+# behaviour/implementation devMode action buttons and devMode command line,
+# scene text background showing what key to press to call debugOverlay or devModeMenu
+
+# [debug stat tracking panel feature list]
 # - dev uses signal to update a dict with name (key) and value
 # - info panel updates automatically whenever the dict data changes
 # - info panel alignment and instantiation (under canvas layer) done as part of global debug
@@ -23,21 +33,15 @@ extends GameGlobal
 #	- info panel gets subheadings & dividers, empty category == hide
 # - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
 #
-#debug action menu
+# [debug action menu feature list]
+# - disclaimer at top of menu informing devs to add buttons if none are present
+# - command line input for written dev commands
+# - keyboard/input typing solution as part of ddat_core
 # - dict to add a new method, key is button text and value is method name in file
 # - after dev updates dict they add a method to be called when button is pressed
 # - buttons without found methods aren't shown when panel is called
 # - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
 #
-#debug logger function
-# - uses isDebugBuild to read whether to get stack trace
-# - otherwise just logs to console with print
-
-# write tests for
-# log_error()
-
-# update method returns for -> void and other
-# do so in infoOverlay also
 
 ##############################################################################
 
@@ -62,6 +66,14 @@ const PUSH_ERRORS_TO_DEBUGGER = true
 # when log_error encounters an error. If unset only a partial/pruned stack
 # trace will be included. No effect on non-debugger/release builds.
 const PRINT_FULL_STACK_TRACE = true
+
+# the log_success method is intended to be used in conjunction with a bool
+# passed by the calling script, a constant in the caller's scope which
+# can be toggled on a script-by-script basis in order to provide finer
+# logging/debugging control.
+# if the dev prefers, they may enable this constant to force every call to
+# the log_success method to run, regardless of the calling script's flag
+const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS = false
 
 ###############################################################################
 
@@ -96,29 +108,13 @@ func _ready():
 
 ###############################################################################
 
-# todo fill out log success method
-# similar to log error without asserts/stacktraces/errorPushing
-# don't multiline it either
-# is good practice to include a log success under verbose logging
-# where 
-# perhaps include global debug setup for verbose logging instead of
-# including within each and every script?
 
-# verboseLogging is an arg in this method, and defaults to false
-# but can be set to be passed by the caller so individual scripts can have
-# their own verbose logging constant which can be set on/off
-# either the argument, or a globalDebug constant, has to be set to get the
-# actual bool for whether to continue with log_success
-# basically if not LogSuccess: return, where LogSuccess == (verbose+gdbglog)
-static func log_success(calling_script, calling_method, success_string):
-	print(calling_script, calling_method, success_string)
-
-
-# use GlobalDebug.LogError() in methods at points where you do not expect
-# the project to reach
-# it is best practice to at least call this method with the method name of the
-# caller, as release builds (non-debugger enabled builds) cannot pass detailed
-# stack information.
+# [Usage]
+# use GlobalDebug.log_error() in methods at points where you do not expect
+# the project to reach during normal runtime
+# it is best practice to at least call this method with the name of the calling
+# script and an identifier for the method, as release builds (non-debugger
+# enabled builds) cannot pass detailed stack information.
 # As an optional third argument, you may pass a more detailed string or
 # code to help you locate the error.
 # in release builds only these arguments will be printed to console/log.
@@ -172,6 +168,57 @@ static func log_error(\
 		assert(false, "fatal error, see last error")
 
 
+# [Usage]
+# use GlobalDebug.log_success in methods at points where you expect the
+# project to reach during normal runtime
+# it is best practice to call this method with at least the script name, and
+# the method name, as release builds (non-debugger enabled builds) cannot
+# pass detailed stack information.
+# unlike with its counterpart log_error, log_success requires the calling
+# script's name or id (str(self) will suffice) and calling method to be passed
+# as arguments. This is to prevent log_success calls being left in the
+# release build without a quick means of identifying where the call was made.
+# [Rationale]
+# LogSuccess is a replacement for the dev practice of leaving print statements
+# in a release-candidate build as a method of debugging. It should be used
+# in conjunction with a script-scope bool passed as the first argument. This
+# flag can be disabled per script to provide finer debugging control.
+# Devs can enable the FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS to ignore the
+# above behaviour and always print log_success calls to console.
+# [Disclaimer]
+# LogSuccess is not intended as catch-all solution, it is to be used in
+# conjunction with testing, debug builds, and debugging tools such as
+# the editor debugger and inspector.
+static func log_success(
+		verbose_logging_enabled: bool,\
+		calling_script: String,\
+		calling_method: String,\
+		success_string: String = "") -> void:
+	# log success is a debugging tool that should always be passed a bool
+	# from the calling script; if the bool arg is false, and the optional
+	# dev flag FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS isn't set, this
+	# method will not do anything
+	if not verbose_logging_enabled\
+	and not FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS:
+		return
+	
+	# build the print string from arguments
+	var print_string = ""
+	print_string += "DBGMGR.log_success({script}.{method})".format({\
+			"script": calling_script,
+			"method": calling_method,
+			})
+	
+	# if an optional argument was included, append it ehre
+	if success_string != "":
+		print_string += " [{success}]".format(\
+				{"success": success_string})
+	
+	print(print_string)
+
+
+# update_debug_info is a method that interfaces with the debug_info_overlay
+# child of GlobalDebug (automatically instantiated at runtime)
 # arg1 is the key for the debug item.
 # this argument should be different when the dev wishes to update the debug
 # info overlay for a different debug item, e.g. use a separate key for player
@@ -180,6 +227,8 @@ static func log_error(\
 # arg2 can be any type, but it will be converted to string before it is set
 # to the text for the value label in the relevant debug info item container
 func update_debug_info(debug_item_key: String, debug_item_value):
+	# TODO
+	# // update w/check for debug_info_overlay initailised & error log if not
 	emit_signal("update_debug_info_overlay",
 			debug_item_key,
 			debug_item_value)
