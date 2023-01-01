@@ -1,4 +1,4 @@
-#
+
 # This is a slightly modified version of the 3.0 (rev 5f5a9378)  style guide
 # Changes are documented below with <- indicators
 # https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html
@@ -21,7 +21,13 @@
 #
 #05. signals
 #06. enums
+#
 #07. constants
+# for passing to error logging
+const SCRIPT_NAME := "script_name"
+# for developer use, enable if making changes
+const VERBOSE_LOGGING := true
+#
 #08. exported variables
 #09. public variables
 #10. private variables
