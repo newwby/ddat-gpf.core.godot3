@@ -12,7 +12,7 @@ extends GameGlobal
 # TODO
 
 #// instantiate and ready/setup/validate debug info overlay on startup
-#// write tests for # log_error() # log_success()
+#// write tests for # log_error() # log_success() and update_debug_info()
 #// update method returns for -> void and other in globalDebug
 #// update method returns for -> void and other in infoOverlay also
 
@@ -51,21 +51,24 @@ extends GameGlobal
 # of the viewport. This allows the developer to set signals or setters within
 # their own code to automatically push changes in important values to somewhere
 # visible ingame. This is useful to get feedback in unstable release builds.
-signal update_debug_info_overlay(item_key, item_value)
+signal update_debug_overlay_item(item_key, item_value)
+
+# for passing to error logging
+const SCRIPT_NAME := "GlobalDebug"
 
 # developer flag, if set then all errors called through the log_error method
 # will pause project execution through a false assertion (this functionality
 # only applies to project builds with the debugger enabled).
 # This flag has no effect on non-debugger/release builds.
-const ASSERT_ALL_ERRRORS = false
+const ASSERT_ALL_ERRRORS := false
 # developer flag, if set all errors called through log_error will, in any
 # build with the debugger enabled, raise the error in the debugger instead of
 # as a print statement. No effect on non-debugger/release builds.
-const PUSH_ERRORS_TO_DEBUGGER = true
+const PUSH_ERRORS_TO_DEBUGGER := true
 # developer flag, if set the debugger will print a full stack trace (verbose),
 # when log_error encounters an error. If unset only a partial/pruned stack
 # trace will be included. No effect on non-debugger/release builds.
-const PRINT_FULL_STACK_TRACE = true
+const PRINT_FULL_STACK_TRACE := true
 
 # the log_success method is intended to be used in conjunction with a bool
 # passed by the calling script, a constant in the caller's scope which
@@ -73,7 +76,17 @@ const PRINT_FULL_STACK_TRACE = true
 # logging/debugging control.
 # if the dev prefers, they may enable this constant to force every call to
 # the log_success method to run, regardless of the calling script's flag
-const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS = false
+const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS := false
+
+#// DEPRECATED as now unused
+# has the dev debug (info) overlay connected with the globalDebug singleton
+#var is_dev_debug_overlay_connected := false
+# has the dev action menu connected with the globalDebug singleton
+#var is_dev_action_menu_connected := false
+# reference to the dev debug (info) overlay, once connection has been made
+#var dev_debug_overlay_node: DevDebugOverlay
+# reference to the dev action menu, once connection has been made
+#var dev_action_menu_node: DevActionMenu
 
 ###############################################################################
 
@@ -108,6 +121,30 @@ func _ready():
 
 ###############################################################################
 
+#// DEPRECATED since devDebugOverlay can just connect to globalDebug signals
+
+## this method is called by the dev debug overlay to establish a connection
+## arg is the node to set as the dev debug overlay for globalDebug
+#func establish_dev_debug_overlay(caller: DevDebugOverlay):
+#	# if this has already been run successfully, ignore
+#	if is_dev_debug_overlay_connected:
+#		return OK
+#
+#
+#	# if the dev debug overlay was already set once, ignore
+#	# do not attempt to set moer than one node as the dev debug overlay
+#	if dev_debug_overlay_node != null:
+#		return ERR_ALREADY_EXISTS
+#
+#	# if this is the first caller then set as the dev debug overlay
+#	dev_debug_overlay_node = caller
+#	# establish connection of associated method
+#	connect("update_debug_info_overlay",
+#			dev_debug_overlay_node, "_update_debug_item_container")
+#	is_dev_debug_overlay_connected = true
+
+
+###############################################################################
 
 # [Usage]
 # use GlobalDebug.log_error() in methods at points where you do not expect
@@ -226,12 +263,25 @@ static func log_success(
 # arg1 shoulod always be a string key
 # arg2 can be any type, but it will be converted to string before it is set
 # to the text for the value label in the relevant debug info item container
-func update_debug_info(debug_item_key: String, debug_item_value):
-	# TODO
-	# // update w/check for debug_info_overlay initailised & error log if not
-	emit_signal("update_debug_info_overlay",
+func update_debug_overlay(debug_item_key: String, debug_item_value):
+	# everything works, pass on the message to the canvas info overlay
+	emit_signal("update_debug_overlay_item",
 			debug_item_key,
 			debug_item_value)
+	
+	#// DEPRECATED as globalDebug no longer keeps record of devDebugOverlay
+	
+#	else:
+#		# if the canvas wasn't found, then the overlay can't do anything
+#		# we could leave this as an unanswered signal, but then we wouldn't
+#		# know there was an instance of updates being made before the canvas
+#		# was ready, or in instances of the canvas failing to ready.
+#		log_error(SCRIPT_NAME, "update_debug_info",
+#				"dev_debug_overlay not found with "+\
+#				"[{key}]: {value}".format(
+#				{"key": debug_item_key,
+#				"value": debug_item_value})
+#				)
 
 
 ##############################################################################
