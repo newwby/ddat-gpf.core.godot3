@@ -6,6 +6,9 @@ extends Control
 
 # DevDebugOverlay.gd is a script for the scene/node of the same name,
 # which manages the presentation of debug information during gameplay.
+
+# DEPENDENCY: GlobalDebug
+
 # 
 # HOW TO USE
 # Call public method to add or update a debug value

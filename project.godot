@@ -43,6 +43,7 @@ config/icon="res://ddat_icon.png"
 
 GlobalData="*res://pkg_ddat_core/src/autoload/global_data.gd"
 GlobalDebug="*res://pkg_ddat_core/src/autoload/global_debug.gd"
+GlobalDevTools="*res://pkg_ddat_core/src/autoload/global_devtools.tscn"
 
 [debug]
 
