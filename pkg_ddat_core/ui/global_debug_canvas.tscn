@@ -2,7 +2,6 @@
 
 [ext_resource path="res://pkg_ddat_core/ui/global_debug_info_overlay/debug_info_overlay.tscn" type="PackedScene" id=1]
 
-
 [node name="CanvasLayer" type="CanvasLayer"]
 
 [node name="DebugInfoOverlay" parent="." instance=ExtResource( 1 )]
