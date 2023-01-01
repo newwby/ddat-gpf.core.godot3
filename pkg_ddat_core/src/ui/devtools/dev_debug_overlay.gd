@@ -1,16 +1,17 @@
 extends Control
 
-#
+#class_name DevDebugOverlay
+
 ##############################################################################
 
-# DebugInfoOverlay.gd is a script for the scene/node of the same name,
+# DevDebugOverlay.gd is a script for the scene/node of the same name,
 # which manages the presentation of debug information during gameplay.
 # 
 # HOW TO USE
 # Call public method to add or update a debug value
-# If the key for the update is found, DebugInfoOverlay will push an update to
+# If the key for the update is found, DevDebugOverlay will push an update to
 # the matching debug item container, changing the value as appropriate.
-# If the key is not found, DebugInfoOverlay will create a new debug item
+# If the key is not found, DevDebugOverlay will create a new debug item
 # container and add its value.
 
 # TODO
@@ -29,7 +30,7 @@ extends Control
 ##############################################################################
 
 # for passing to error logging
-const SCRIPT_NAME := "debug_info_overlay"
+const SCRIPT_NAME := "dev_debug_overlay"
 # for developer use, enable if making changes
 const VERBOSE_LOGGING := true
 
@@ -64,7 +65,9 @@ onready var debug_item_container_default_node: HBoxContainer =\
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var _ready_logging = ""
+	# any failed success setup step will unset this
+	var setup_success_state = true
+	
 	# set initial size based on current viewport, then prepare for
 	# any future occurence of the viewport size changing and moving elements
 	_on_viewport_resized_resize_info_overlay()
@@ -86,7 +89,7 @@ func _ready():
 	
 	# set the connection to globalDebug so when globalDebug.update_debug_info
 	# method is called, it redirects to _update_debug_item_container method
-	if GlobalDebug.connect("update_debug_info_overlay",
+	if GlobalDebug.connect("update_debug_overlay_item",
 			self, "_update_debug_item_container") != OK:
 		# report error on failure to link debug info voerlay to globalDebug
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
@@ -102,13 +105,15 @@ func _ready():
 func _update_debug_item_container(\
 		item_container_key: String,
 		new_value):
-	pass
-	# unused vars temporary
-	item_container_key = item_container_key
-	new_value = new_value
-	# todo add container found code
-	# todo add container not found code
-
+	
+	# update debug values
+	debug_values[item_container_key] = new_value
+	
+	#// TODO
+	# lookup debug item container for associated update
+	# if does not exist, duplicate the default container
+	# if it does, update the value node
+	# do with setter?
 
 
 ##############################################################################
