@@ -30,6 +30,10 @@ extends Control
 #// add developer support for setting margin
 #// add support for text colour
 
+# POTENTIAL BUGS
+#// what happens if multiple sources try to update a new key? will more than
+# one debugItemContainer be created? what happens to the reference of the last?
+
 ##############################################################################
 
 # for passing to error logging
@@ -53,7 +57,7 @@ const DEBUG_ITEM_VALUE_MIN_SIZE_FRACTIONAL = 0.04
 # this dict stores debug values passed to the info overlay (via globalDebug)
 # when the update_debug_info method is called, this dict is updated
 # when this dict is updated the setter for this dict calls 
-var debug_values = {}
+var debug_item_container_node_refs = {}
 
 # these are node paths to the major nodes in the debug info overlay scene
 onready var debug_edge_margin_node: MarginContainer =\
@@ -78,22 +82,30 @@ func _ready():
 			self, "_on_viewport_resized_resize_info_overlay") != OK:
 		# report error on failure to get signal
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
+		setup_success_state = false
 	else:
 		GlobalDebug.log_success(VERBOSE_LOGGING,\
 				SCRIPT_NAME, "_ready", "view.connect")
 	
 	# configure the default/template item container
-	if _setup_info_item_container(debug_item_container_default_node) != OK:
+	# passed arg is default container (is child, should be readied) node ref
+	if _setup_info_item_container(
+				debug_item_container_default_node) != OK:
 		# report error on failure to initially configure debug item container
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
+		setup_success_state = false
 	else:
 		GlobalDebug.log_success(VERBOSE_LOGGING,\
 				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
+	# before connecting next signal, verify previous setups happened as planned
+	if not setup_success_state:
+		return
+	
 	# set the connection to globalDebug so when globalDebug.update_debug_info
 	# method is called, it redirects to _update_debug_item_container method
 	if GlobalDebug.connect("update_debug_overlay_item",
-			self, "_update_debug_item_container") != OK:
+			self, "_on_update_debug_overlay_item_notify_container") != OK:
 		# report error on failure to link debug info voerlay to globalDebug
 		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
 	else:
@@ -104,32 +116,111 @@ func _ready():
 ##############################################################################
 
 
-# if not found duplicate a new item container & call _setup_info_item_container
-func _update_debug_item_container(\
-		item_container_key: String,
-		new_value):
+func _update_debug_item_key_label(
+		passed_item_container: HBoxContainer,
+		debug_item_key: String):
+	# get label by node path
+	var key_label_node = passed_item_container.get_node_or_null(
+			NODE_NAME_DEBUG_ITEM_LABEL_KEY)
+	if key_label_node is Label:
+		key_label_node.text = debug_item_key
+
+
+func _update_existing_debug_item_value(
+			passed_item_container: HBoxContainer,
+			debug_item_new_value: String):
+	# container should be inside tree before attempting to update
+	if passed_item_container.is_inside_tree():
+		# get label by node path
+		var value_label_node = passed_item_container.get_node_or_null(
+				NODE_NAME_DEBUG_ITEM_LABEL_VALUE)
+		if value_label_node is Label:
+			value_label_node.text = debug_item_new_value
+		else:
+			GlobalDebug.log_error(SCRIPT_NAME,
+					"_update_existing_debug_item_value",
+					"itemcon_value_is_not_label")
+	else:
+		GlobalDebug.log_error(SCRIPT_NAME, "_update_existing_debug_item_value",
+				"passed_item_container.not_in_tree")
+		return
+
+
+# called whenever an item container for a specific key can't be found
+# this method duplicates the default item container node,
+# adds the duplicate as a child to the info column,
+# and then calls _update_existing_debug_item_value with the value
+func _create_debug_item_container(
+			debug_item_key: String,
+			debug_item_new_value: String) -> HBoxContainer:
+	var new_debug_item_container_node
+	# check valid before duplicating
+	if debug_item_container_default_node == null:
+		# this should not happen
+		GlobalDebug.log_error(SCRIPT_NAME, "_create_debug_item_container",
+				"default_item_container.not_found")
+	else:
+		# add to scene tree beneath info column node
+		# verify there's a valid debug info column then add the new container
+		if debug_info_column_node != null:
+			# log progress if verbose logging
+			GlobalDebug.log_success(VERBOSE_LOGGING,\
+					SCRIPT_NAME, "_ready", "newitemcon.setup.step1")
+			# we wait to duplicate until we confirm there's a valid parent node
+			# else we'll potentially end up with a memory leak
+			new_debug_item_container_node =\
+					debug_item_container_default_node.duplicate()
+			# wait until the info column node has an idle frame
+			debug_info_column_node.call_deferred("add_child",
+					new_debug_item_container_node)
+			# wait until new container is in the scene tree before continuing
+			yield(new_debug_item_container_node, "ready")
+			
+			# after new container is readied, must configure its children
+			# this sets up the value label group for viewport resizing calls
+			# this also doublechecks the tree structure of the duplicate node
+			if _setup_info_item_container(new_debug_item_container_node)!= OK:
+				# report error on failure to configure new item container
+				GlobalDebug.log_error(SCRIPT_NAME, "_ready", "newitemcon.setup")
+			else:
+				# log progress if verbose logging
+				GlobalDebug.log_success(VERBOSE_LOGGING,\
+						SCRIPT_NAME, "_ready", "newitemcon.setup.step2")
+				# new item container is ready, we can now allow it to update
+				# register the new item container in the node ref dictionary
+				debug_item_container_node_refs[debug_item_key] =\
+						new_debug_item_container_node
+				# update the initial key string (done once here)
+				_update_debug_item_key_label(
+					new_debug_item_container_node,
+					debug_item_key
+				)
+				# call the normal update debug item value method
+				_update_existing_debug_item_value(
+						new_debug_item_container_node,
+						debug_item_new_value)
+				# default item container is set invisible so last step is
+				# to render the new (duplicated) item container visible
+				new_debug_item_container_node.visible = true
+		# if debug item column node was not readied properly (is null)
+		# then there's no parent to add the new item container to
+		else:
+			GlobalDebug.log_error(SCRIPT_NAME, "_create_debug_item_container",
+				"debug_info_column_node.not_found")
 	
-	# update debug values
-	debug_values[item_container_key] = new_value
-	
-	#// TODO
-	# lookup debug item container for associated update
-	# if does not exist, duplicate the default container
-	# if it does, update the value node
-	# do with setter?
+	return debug_item_container_default_node
 
 
 ##############################################################################
 
 
-# todo add verbose logging checks
 func _setup_info_item_container(passed_item_container: HBoxContainer):
 	# you can pass any hbox container child of the info column,
 	# as long as it has two labels,
 	# and the two labels have the correct names
-	var label_node_key = passed_item_container.get_node_or_null(\
+	var label_node_key = passed_item_container.get_node_or_null(
 			NODE_NAME_DEBUG_ITEM_LABEL_KEY)
-	var label_node_value = passed_item_container.get_node_or_null(\
+	var label_node_value = passed_item_container.get_node_or_null(
 			NODE_NAME_DEBUG_ITEM_LABEL_VALUE)
 	
 	# check if parent is correct
@@ -154,6 +245,41 @@ func _setup_info_item_container(passed_item_container: HBoxContainer):
 
 
 ##############################################################################
+#
+# signal receipt methods
+
+
+# if not found duplicate a new item container & call _setup_info_item_container
+func _on_update_debug_overlay_item_notify_container(\
+		item_container_key: String,
+		new_value):
+	
+	var debug_item_value = str(new_value)
+	var get_debug_item_container
+	if debug_item_container_node_refs.has(item_container_key):
+		get_debug_item_container =\
+				debug_item_container_node_refs[item_container_key]
+		_update_existing_debug_item_value(
+				get_debug_item_container,
+				debug_item_value)
+	else:
+		# if container not found, create a new container and assign it
+		if get_debug_item_container == null:
+			var new_debug_item_container = _create_debug_item_container(
+						item_container_key,
+						debug_item_value
+			)
+			# if there's a problem with the previous method it will return nil
+			if new_debug_item_container != null:
+				print(typeof(new_debug_item_container))
+				get_debug_item_container = new_debug_item_container
+			else:
+				GlobalDebug.log_error(SCRIPT_NAME,
+					"_on_update_debug_overlay_item_notify_container",
+					"new_debug_item_container.not_found")
+				return
+		else:
+			pass
 
 
 # call on ready and whenever viewport size changes
