@@ -116,41 +116,11 @@ func _ready():
 ##############################################################################
 
 
-func _update_debug_item_key_label(
-		passed_item_container: HBoxContainer,
-		debug_item_key: String):
-	# get label by node path
-	var key_label_node = passed_item_container.get_node_or_null(
-			NODE_NAME_DEBUG_ITEM_LABEL_KEY)
-	if key_label_node is Label:
-		key_label_node.text = debug_item_key
-
-
-func _update_existing_debug_item_value(
-			passed_item_container: HBoxContainer,
-			debug_item_new_value: String):
-	# container should be inside tree before attempting to update
-	if passed_item_container.is_inside_tree():
-		# get label by node path
-		var value_label_node = passed_item_container.get_node_or_null(
-				NODE_NAME_DEBUG_ITEM_LABEL_VALUE)
-		if value_label_node is Label:
-			value_label_node.text = debug_item_new_value
-		else:
-			GlobalDebug.log_error(SCRIPT_NAME,
-					"_update_existing_debug_item_value",
-					"itemcon_value_is_not_label")
-	else:
-		GlobalDebug.log_error(SCRIPT_NAME, "_update_existing_debug_item_value",
-				"passed_item_container.not_in_tree")
-		return
-
-
 # called whenever an item container for a specific key can't be found
 # this method duplicates the default item container node,
 # adds the duplicate as a child to the info column,
 # and then calls _update_existing_debug_item_value with the value
-func _create_debug_item_container(
+func create_debug_item_container(
 			debug_item_key: String,
 			debug_item_new_value: String) -> HBoxContainer:
 	var new_debug_item_container_node
@@ -191,12 +161,12 @@ func _create_debug_item_container(
 				debug_item_container_node_refs[debug_item_key] =\
 						new_debug_item_container_node
 				# update the initial key string (done once here)
-				_update_debug_item_key_label(
+				update_debug_item_key_label(
 					new_debug_item_container_node,
 					debug_item_key
 				)
 				# call the normal update debug item value method
-				_update_existing_debug_item_value(
+				update_existing_debug_item_value(
 						new_debug_item_container_node,
 						debug_item_new_value)
 				# default item container is set invisible so last step is
@@ -209,6 +179,36 @@ func _create_debug_item_container(
 				"debug_info_column_node.not_found")
 	
 	return debug_item_container_default_node
+
+
+func update_debug_item_key_label(
+		passed_item_container: HBoxContainer,
+		debug_item_key: String):
+	# get label by node path
+	var key_label_node = passed_item_container.get_node_or_null(
+			NODE_NAME_DEBUG_ITEM_LABEL_KEY)
+	if key_label_node is Label:
+		key_label_node.text = debug_item_key
+
+
+func update_existing_debug_item_value(
+			passed_item_container: HBoxContainer,
+			debug_item_new_value: String):
+	# container should be inside tree before attempting to update
+	if passed_item_container.is_inside_tree():
+		# get label by node path
+		var value_label_node = passed_item_container.get_node_or_null(
+				NODE_NAME_DEBUG_ITEM_LABEL_VALUE)
+		if value_label_node is Label:
+			value_label_node.text = debug_item_new_value
+		else:
+			GlobalDebug.log_error(SCRIPT_NAME,
+					"_update_existing_debug_item_value",
+					"itemcon_value_is_not_label")
+	else:
+		GlobalDebug.log_error(SCRIPT_NAME, "_update_existing_debug_item_value",
+				"passed_item_container.not_in_tree")
+		return
 
 
 ##############################################################################
@@ -259,13 +259,13 @@ func _on_update_debug_overlay_item_notify_container(\
 	if debug_item_container_node_refs.has(item_container_key):
 		get_debug_item_container =\
 				debug_item_container_node_refs[item_container_key]
-		_update_existing_debug_item_value(
+		update_existing_debug_item_value(
 				get_debug_item_container,
 				debug_item_value)
 	else:
 		# if container not found, create a new container and assign it
 		if get_debug_item_container == null:
-			var new_debug_item_container = _create_debug_item_container(
+			var new_debug_item_container = create_debug_item_container(
 						item_container_key,
 						debug_item_value
 			)
