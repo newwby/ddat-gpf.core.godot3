@@ -32,7 +32,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="##### Godot Framework Workspace"
+config/name="# DDAT Godot Prototyping Framework"
 config/description="workspace to focus on developing modular frameworks for godot projects"
 run/main_scene="res://placeholder_main.tscn"
 config/use_custom_user_dir=true
