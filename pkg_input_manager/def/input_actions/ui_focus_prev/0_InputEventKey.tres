@@ -1,5 +1,0 @@
-[gd_resource type="InputEventKey" format=2]
-
-[resource]
-shift = true
-scancode = 16777218
