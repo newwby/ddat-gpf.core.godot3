@@ -45,6 +45,13 @@ func _ready():
 	# initial scene duration push to overlay
 	update_scene_duration_string()
 	
+	if 2 >= 3:
+		GlobalDebug.log_success(VERBOSE_LOGGING, SCRIPT_NAME,
+				"_ready", "math.broken")
+	else:
+		GlobalDebug.log_error(SCRIPT_NAME,
+				"_ready", "2 is not greater or equal to 3")
+	
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -63,7 +70,6 @@ func _input(event):
 			GlobalDebug.update_debug_overlay(
 					action_string,
 					pressed_event_register[action_string])
-			print(pressed_event_register)
 
 
 func update_scene_clock_vars():
