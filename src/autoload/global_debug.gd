@@ -208,8 +208,8 @@ static func log_error(\
 	# with debugger running, and flag set, push as error rather than log print
 	if OS.is_debug_build() and PUSH_ERRORS_TO_DEBUGGER:
 		push_error(print_string)
-	else:
-		print(print_string)
+	# print regardless
+	print(print_string)
 	
 	# if the appropriate flag is enabled, pause project on error call
 	if OS.is_debug_build() and ASSERT_ALL_ERRRORS:
@@ -280,6 +280,8 @@ static func log_success(
 # to the text for the value label in the relevant debug info item container
 func update_debug_overlay(debug_item_key: String, debug_item_value):
 	# everything works, pass on the message to the canvas info overlay
+	# validation step added due to strange method-not-declared bug that
+	# ocassionally occurs
 	emit_signal("update_debug_overlay_item",
 			debug_item_key,
 			debug_item_value)

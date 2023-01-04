@@ -271,7 +271,6 @@ func _on_update_debug_overlay_item_notify_container(\
 			)
 			# if there's a problem with the previous method it will return nil
 			if new_debug_item_container != null:
-				print(typeof(new_debug_item_container))
 				get_debug_item_container = new_debug_item_container
 			else:
 				GlobalDebug.log_error(SCRIPT_NAME,
