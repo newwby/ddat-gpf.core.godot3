@@ -256,7 +256,7 @@ static func log_success(
 	
 	# build the print string from arguments
 	var print_string = ""
-	print_string += "DBGMGR.log_success({script}.{method})".format({\
+	print_string += "DBGMGR.log({script}.{method})".format({\
 			"script": calling_script,
 			"method": calling_method,
 			})
