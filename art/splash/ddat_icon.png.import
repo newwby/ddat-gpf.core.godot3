@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ddat_icon.png-208652e748733d519e53df43e4264056.stex"
+path="res://.import/ddat_icon.png-05e267158a7b9913a3dbc67bb00d606e.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ddat_icon.png"
-dest_files=[ "res://.import/ddat_icon.png-208652e748733d519e53df43e4264056.stex" ]
+source_file="res://art/splash/ddat_icon.png"
+dest_files=[ "res://.import/ddat_icon.png-05e267158a7b9913a3dbc67bb00d606e.stex" ]
 
 [params]
 

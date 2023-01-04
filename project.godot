@@ -12,17 +12,17 @@ _global_script_classes=[ {
 "base": "Resource",
 "class": "CompoundActionExtension",
 "language": "GDScript",
-"path": "res://pkg_input_manager/src/class/class_compound_action_extension.gd"
+"path": "res://_dev/pkg_input_manager/src/class/class_compound_action_extension.gd"
 }, {
 "base": "Node",
 "class": "GameGlobal",
 "language": "GDScript",
-"path": "res://pkg_ddat_core/src/class/class_global.gd"
+"path": "res://src/class/class_global.gd"
 }, {
 "base": "GameGlobal",
 "class": "GlobalInput",
 "language": "GDScript",
-"path": "res://pkg_input_manager/global_input.gd"
+"path": "res://_dev/pkg_input_manager/global_input.gd"
 } ]
 _global_script_class_icons={
 "CompoundActionExtension": "",
@@ -34,16 +34,16 @@ _global_script_class_icons={
 
 config/name="# DDAT Godot Prototyping Framework"
 config/description="workspace to focus on developing modular frameworks for godot projects"
-run/main_scene="res://placeholder_main.tscn"
+run/main_scene="res://_dev/placeholder_main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="ddat_framework"
-config/icon="res://ddat_icon.png"
+config/icon="res://_dev/ddat_icon.png"
 
 [autoload]
 
-GlobalData="*res://pkg_ddat_core/src/autoload/global_data.gd"
-GlobalDebug="*res://pkg_ddat_core/src/autoload/global_debug.gd"
-GlobalDevTools="*res://pkg_ddat_core/src/autoload/global_devtools.tscn"
+GlobalData="*res://src/autoload/global_data.gd"
+GlobalDebug="*res://src/autoload/global_debug.gd"
+GlobalDevTools="*res://src/autoload/global_devtools.tscn"
 
 [debug]
 
@@ -56,7 +56,7 @@ window/size/height=1080
 
 [editor]
 
-script_templates_search_path="res://default_scripts"
+script_templates_search_path="res://_dev/default_scripts"
 
 [logging]
 
@@ -64,4 +64,4 @@ file_logging/enable_file_logging=true
 
 [rendering]
 
-environment/default_environment="res://default_env.tres"
+environment/default_environment="res://_dev/default_env.tres"
