@@ -78,6 +78,13 @@ const PRINT_FULL_STACK_TRACE := true
 # the log_success method to run, regardless of the calling script's flag
 const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS := false
 
+# This flag disables all log_error and log_success calls.
+# This setting overrides all others, including any above 'FORCE_' constants.
+# Enable this setting if you suspect your logging calls are becoming a
+# performance drain and you would like to temporarily suspend them to improve
+# game performance. Try to identify excessive calls instead of relying on this.
+const OVERRIDE_DISABLE_ALL_LOGGING := false
+
 #// DEPRECATED as now unused
 # has the dev debug (info) overlay connected with the globalDebug singleton
 #var is_dev_debug_overlay_connected := false
@@ -132,7 +139,7 @@ func _ready():
 #
 #
 #	# if the dev debug overlay was already set once, ignore
-#	# do not attempt to set moer than one node as the dev debug overlay
+#	# do not attempt to set more than one node as the dev debug overlay
 #	if dev_debug_overlay_node != null:
 #		return ERR_ALREADY_EXISTS
 #
@@ -161,6 +168,10 @@ static func log_error(\
 		calling_script: String = "",\
 		calling_method: String = "",\
 		error_string: String = "") -> void:
+	# if suspending logging, stop immediately
+	if OVERRIDE_DISABLE_ALL_LOGGING:
+		return
+	
 	# build error string through this method then print at end of method
 	# open all errors with a new line to keep them noticeable in the log
 	var print_string = "\nDBGMGR raised error"
@@ -231,6 +242,10 @@ static func log_success(
 		calling_script: String,\
 		calling_method: String,\
 		success_string: String = "") -> void:
+	# if suspending logging, stop immediately
+	if OVERRIDE_DISABLE_ALL_LOGGING:
+		return
+	
 	# log success is a debugging tool that should always be passed a bool
 	# from the calling script; if the bool arg is false, and the optional
 	# dev flag FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS isn't set, this
