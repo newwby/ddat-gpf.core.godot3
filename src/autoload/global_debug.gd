@@ -8,8 +8,15 @@ extends GameGlobal
 # debugging projects, through error logging, faciliating exposure  of game
 # parameters to the developer, and allowing the developer to quickly add
 # 'god-mode' actions accessible through a simple UI.
+#
+# DEPENDENCIES
+# Set as an autoload *BEFORE* DDAT_Core.GlobalData
+# Set as your first autoload, or as early as you can.
+#
 
 # TODO
+
+#// add variation of logError that is just for minor errors (never pushes)
 
 #// instantiate and ready/setup/validate debug info overlay on startup
 #// write tests for # log_error() # log_success() and update_debug_info()
