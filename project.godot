@@ -10,11 +10,23 @@ config_version=4
 
 _global_script_classes=[ {
 "base": "Node",
+"class": "CustomObject",
+"language": "GDScript",
+"path": "res://_dev/_tempdelme/class_custom_object.gd"
+}, {
+"base": "Resource",
+"class": "GameDataContainer",
+"language": "GDScript",
+"path": "res://src/class/class_game_data_container.gd"
+}, {
+"base": "Node",
 "class": "GameGlobal",
 "language": "GDScript",
 "path": "res://src/class/class_global.gd"
 } ]
 _global_script_class_icons={
+"CustomObject": "",
+"GameDataContainer": "",
 "GameGlobal": ""
 }
 
@@ -49,6 +61,10 @@ script_templates_search_path="res://_dev/default_scripts"
 [logging]
 
 file_logging/enable_file_logging=true
+
+[network]
+
+limits/debugger_stdout/max_chars_per_second=10000
 
 [rendering]
 
