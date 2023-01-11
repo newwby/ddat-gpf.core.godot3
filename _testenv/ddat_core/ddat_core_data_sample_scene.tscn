@@ -2,5 +2,5 @@
 
 [ext_resource path="res://_testenv/ddat_core/ddat_core_data_sample_scene.gd" type="Script" id=1]
 
-[node name="Node2D" type="Node2D"]
+[node name="GlobalData_Sample_Scene" type="Node2D"]
 script = ExtResource( 1 )
