@@ -88,6 +88,28 @@ func build_path(
 	return full_data_path
 
 
+# method to create a directory, required to save resources to directories
+# that have yet to be referenced. If the path to the directory consists of
+# multiple directories that have yet to be created, this method will create
+# every directory specified in the path.
+# Does nothing if the path already exists.
+# [method params as follows]
+##1, absolute_path, is the full path to the directory
+func create_directory(
+		absolute_path: String
+		) -> int:
+	# object to get directory class methods
+	var dir_accessor = Directory.new()
+	# do nothing if path exists (expected to fail so overridden error logging)
+	if validate_path(absolute_path, true) == false:
+		# directories all the way down
+		#// TODO add optional arg for making recursive
+		dir_accessor.make_dir_recursive(absolute_path)
+		return OK
+	else:
+		return ERR_CANT_CREATE
+
+
 # this method returns the string value of the DATA_PATHS (dict) database,
 # the path to the local directory (res://)
 # this is shorter and less prone to user error than the dev writing;
@@ -149,51 +171,34 @@ func save_resource(
 		) -> int:
 	# combine paths
 	var full_data_path: String = directory_path+file_name
-	# resources can only be saved to paths within the user data folder.
-	# user data path is "user://"
-	if directory_path.substr(0, 7) != DATA_PATHS[DATA_PATH_PREFIXES.USER]:
-		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
-				"{p} is not user_data path".format({"p": directory_path}))
-		return ERR_FILE_BAD_PATH
+	# error code (or OK) for returning
+	var return_code: int
 	
-	# check if the directory already exists
-	if not validate_path(directory_path):
-		# if not force writing, and directory doesn't exist, return invalid
-		if not force_write_directory:
-			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
-					"directory at {p} does not exist".format({
-					"p": directory_path}))
-			return ERR_FILE_BAD_PATH
-		# if force writing and directory doesn't exist, create it
-		elif force_write_directory:
-			var attempt_write_dir = write_directory(directory_path)
-			if attempt_write_dir != OK:
-				GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
-						"failed attempt to write directory at {p}".format({
-							"p": directory_path
-						}))
-				return attempt_write_dir
+	# next up are methods to validate the write operation. For each;
+	# if OK (0), continue function. If an error code (1+), return the error.
+	# We're using error codes rather than bool for more informative debugging.
 	
-	# check the full path is valid
-	var _is_path_valid := false
-	_is_path_valid = validate_path(full_data_path)
-	# if we aren't overwriting the file, no file must exist at the path.
-	if not force_write_file\
-	and _is_path_valid:
-			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
-					"file at {p} already exists".format({
-					"p": full_data_path}))
-			return ERR_FILE_NO_PERMISSION
-
-	# default return arg at this point is a pass
-	var _return_arg = OK
-	# path must be valid
-#	if _is_path_valid:
-	# everything okay, save the resource
-	_return_arg = ResourceSaver.save(full_data_path, saveable_res)
-#	_return_arg = ERR_FILE_BAD_PATH
+	# validate directory path
+	return_code = _is_write_operation_directory_valid(
+			directory_path,
+			force_write_directory
+			)
+	if return_code != OK:
+		return return_code
+	
+	# validate file path
+	return_code = _is_write_operation_path_valid(
+			full_data_path,
+			force_write_file
+			)
+	if return_code != OK:
+		return return_code
+	
+	# move on to the write operation
+	return_code = ResourceSaver.save(full_data_path, saveable_res)
 	# if all is well and the function didn't exit prior to this point
-	return _return_arg
+	# should be 'OK' (int 0)
+	return return_code
 
 
 # validate either a directory or file path, depending on the path passed.
@@ -221,31 +226,64 @@ func validate_path(
 	return _is_valid
 
 
-# method to create a directory, required to save resources to directories
-# that have yet to be referenced. If the path to the directory consists of
-# multiple directories that have yet to be created, this method will create
-# every directory specified in the path.
-# Does nothing if the path already exists.
-# [method params as follows]
-##1, absolute_path, is the full path to the directory
-func write_directory(
-		absolute_path: String
-		) -> int:
-	# object to get directory class methods
-	var dir_accessor = Directory.new()
-	# do nothing if path exists (expected to fail so overridden error logging)
-	if validate_path(absolute_path, true) == false:
-		# directories all the way down
-		#// TODO add optional arg for making recursive
-		dir_accessor.make_dir_recursive(absolute_path)
-		return OK
-	else:
-		return ERR_CANT_CREATE
-
-
 ##############################################################################
 
 # private methods
+
+
+# validation method for public 'save' methods
+func _is_write_operation_directory_valid(
+		directory_path: String,
+		force_write_directory: bool = true
+		) -> int:
+	# resources can only be saved to paths within the user data folder.
+	# user data path is "user://"
+	if directory_path.substr(0, 7) != DATA_PATHS[DATA_PATH_PREFIXES.USER]:
+		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+				"{p} is not user_data path".format({"p": directory_path}))
+		return ERR_FILE_BAD_PATH
+	
+	# check if the directory already exists
+	if not validate_path(directory_path):
+		# if not force writing, and directory doesn't exist, return invalid
+		if not force_write_directory:
+			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+					"directory at {p} does not exist".format({
+					"p": directory_path}))
+			return ERR_FILE_BAD_PATH
+		# if force writing and directory doesn't exist, create it
+		elif force_write_directory:
+			var attempt_write_dir = create_directory(directory_path)
+			if attempt_write_dir != OK:
+				GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+						"failed attempt to write directory at {p}".format({
+							"p": directory_path
+						}))
+				return attempt_write_dir
+	# if all was successful,
+	# and no directory needed to be created
+	return OK
+
+
+# validation method for public 'save' methods
+# this method assumes the directory already exists, call create_directory()
+# beforehand on the directory if you are unsure
+func _is_write_operation_path_valid(
+		file_path: String,
+		force_write_file: bool
+		) -> int:
+	# check the full path is valid
+	var _is_path_valid := false
+	_is_path_valid = validate_path(file_path)
+	
+	# if file exists and we don't have permission to overwrite
+	if (not force_write_file and _is_path_valid):
+		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+				"file at {p} already exists".format({
+				"p": file_path}))
+		return ERR_FILE_NO_PERMISSION
+	# if all was successful,
+	return OK
 
 
 ## if arg force_validate is set will create the directory if it doesn't find it
