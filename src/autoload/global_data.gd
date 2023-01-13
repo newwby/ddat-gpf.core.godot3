@@ -13,6 +13,7 @@ extends GameGlobal
 #//TODO
 #// finish load_resource
 #// add optional arg for making write_directory recursive
+#// add file path .tres extension validation
 
 ##############################################################################
 #
@@ -130,15 +131,32 @@ func get_dirpath_user() -> String:
 	return DATA_PATHS[DATA_PATH_PREFIXES.USER]
 
 
-#// TODO UNFINISHED load_resource method
-#func load_resource(
-#		file_path: String,
-#		is_class_cast = null
-#		):
-#	pass
-##func load_gdc():
-##	var new_resource = ResourceLoader.load(resource_path)
-##	return new_resource
+# this method loads and returns (if valid) a resource from disk
+# [method params as follows]
+##1, file_path, is the path to the resource to be loaded.
+##2, type_cast, should be comparison type or object of a class to be compared
+# to the resource once it is loaded. If the comparison returns untrue, the
+# loaded resource will not be returned. The default argument for this parameter
+# is null, which will result in this comparison behvaiour being ignored.
+# Developers can use this to ensure the resource they're loading will return
+# a resource of the class they desire.
+# [warning!] Devs, if using a var referencing an object as a comparison class
+# class, be careful not to use an object that shares a common parent but isn't
+# the same end point class (example would be HBoxContainer and VBoxContainer
+# both sharing many of the same parents), as this may return false postiives.
+func load_resource(
+		file_path: String,
+		type_cast = null
+):
+	var new_resource
+	if type_cast != null:
+		pass
+	new_resource = ResourceLoader.load(file_path)
+	#//TODO
+	if new_resource == null:
+#		print("failed load")
+		return null
+	return new_resource
 
 
 # method to save any resource or resource-extended custom class to disk.
