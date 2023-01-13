@@ -8,18 +8,76 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# caution: running unit tests will push a lot of (intentional) errors
+	var run_unit_tests = false
+	if run_unit_tests:
+		# run unit tests
+		print("test 1 = {1}"+"test 2 = {2}".format({
+				"1": _unit_test_save_resource_path_to_user_data(),
+				"2": _unit_test_load_invalid_resource_path()
+				}))
 	pass
+	#
+	# custom manual testing
+	#
 	var get_test_path = GlobalData.get_dirpath_user()
 #	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
 	get_test_path += "test/test2/test3/test4/"
 	var file_name = "res.tres"
 	var return_arg = GlobalData.save_resource(get_test_path, file_name, Resource.new())
 	if return_arg != OK:
-		print(return_arg)
+		print("error ", return_arg)
+	else:
+		print("write operation successful")
+#		var sample_path = get_test_path+file_name
+#		var sample_path = GlobalData.get_dirpath_user()+"res.tres"
+		var sample_path = GlobalData.get_dirpath_user()+"resource_new.tres"
+#		var sample_path = GlobalData.get_dirpath_user()+"score.save"
+		var _new_res = GlobalData.load_resource(sample_path)
+	#
+	#
+#	test_save(GameDataContainer.new())
+	var get_save_res = test_load(GameDataContainer)
+	if get_save_res != null:
+		if "get_class" in get_save_res:
+			get_save_res.get_class()
+		print("is save a datacon? ", (get_save_res is GameDataContainer))
+		print(get_save_res)
+		if "example_float_data" in get_save_res:
+			var get_float_data = get_save_res.example_float_data
+			print(get_float_data)
+			var increase: float = 2.70
+			print("incrementing float by {inc}, ({old}+{inc}={new})".format({
+				"old": get_float_data,
+				"inc": increase,
+				"new": (get_float_data+increase),
+			}))
+			# now save it to file
+			get_save_res.example_float_data = get_float_data+increase
+			test_save(get_save_res)
+
+
+func test_save(player_save):
+	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
+	var datacon_file := "save1.tres"
+#	var player_save := GameDataContainer.new()
+	var _return_arg =\
+			GlobalData.save_resource(datacon_dir, datacon_file, player_save)
+
+
+func test_load(type_cast_test = null):
+	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
+	var datacon_file := "save1.tres"
+	var save_file = GlobalData.load_resource(
+			datacon_dir+datacon_file,
+			type_cast_test
+	)
+	return save_file
 
 
 # paths must begin with user://
 # test by sending invalid paths
+# caution: running this unit test will push a lot of (intentional) errors
 func _unit_test_save_resource_path_to_user_data() -> bool:
 	var get_results = []
 	get_results.append(GlobalData.save_resource("test.txt", "", Resource.new()))
@@ -32,6 +90,19 @@ func _unit_test_save_resource_path_to_user_data() -> bool:
 			return false
 	# if loop through safely, all results were invalid
 	return true
+
+
+# load method should check paths
+# test by loading a completely invalid path
+func _unit_test_load_invalid_resource_path() -> bool:
+	var _end_result := true
+	var new_resource
+	new_resource = GlobalData.load_resource("fakepath")
+	if new_resource == null:
+		_end_result = true
+	else:
+		_end_result = false
+	return _end_result
 
 
 #func old2():
