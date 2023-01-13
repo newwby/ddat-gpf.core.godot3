@@ -132,6 +132,7 @@ func get_dirpath_user() -> String:
 
 
 # this method loads and returns (if valid) a resource from disk
+# returns either a loaded resource, or a null value if it is invalid
 # [method params as follows]
 ##1, file_path, is the path to the resource to be loaded.
 ##2, type_cast, should be comparison type or object of a class to be compared
@@ -147,15 +148,39 @@ func get_dirpath_user() -> String:
 func load_resource(
 		file_path: String,
 		type_cast = null
-):
-	var new_resource
-	if type_cast != null:
-		pass
-	new_resource = ResourceLoader.load(file_path)
-	#//TODO
-	if new_resource == null:
-#		print("failed load")
+		):
+	# check path is valid before loading resource
+	# error logging redundant as validate_path method includes logging
+	var is_path_valid = validate_path(file_path)
+	if not is_path_valid:
 		return null
+	
+		# attempt to load resource
+	var new_resource: Resource = ResourceLoader.load(file_path)
+	
+	# then validate it was loaded and is corrected type
+	
+	# if resource wasn't succesfully loaded (check before type validation)
+	if new_resource == null:
+		GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+				"resource not loaded successfully, is null")
+		return null
+	
+	# ignore type_casting behaviour if set to null
+	# otherwise loaded resource must be the same type
+	if not (type_cast == null):
+		if not (new_resource is type_cast):
+			# discard value to ensure reference count update
+			new_resource = null
+			GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+					"resource not loaded succesfully, invalid type")
+			return null
+	
+	# if everything is okay, return the loaded resource
+	GlobalDebug.log_success(verbose_logging, SCRIPT_NAME, "load_resource",
+			"resource {res} validated and returned".format({
+				"res": new_resource
+			}))
 	return new_resource
 
 
@@ -163,10 +188,11 @@ func load_resource(
 # call this method with 'if save_resource(*args) == OK' to validate
 # [method params as follows]
 ##1, directory_path, is the path to the file location sans the file_name
-#	e.g. 'user://saves/player1.sav' should be passed as 'user://saves/'
+#	e.g. 'user://saves/player1.tres' should be passed as 'user://saves/'
 # (Always leave a trailing slash on the end of directory paths.)
 ##2, file_name, is the name of the file
-#	e.g. 'user://saves/player1.sav' should be passed as 'player1.sav'
+#	e.g. 'user://saves/player1.tres' should be passed as 'player1.tres'
+#	(note: resource extensions should always be .tres for a resource)
 # the first two arguments are combined to get the full file path; they exist
 # as separate arguments so directories can be validated independent of files.
 ##3, saveable_res, is the resource object to save
@@ -240,7 +266,7 @@ func validate_path(
 	if not _is_valid\
 	and not override_logging:
 		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
-				"file or directory [{p}] not found".format({"p": _path_check}))
+				"file or directory [{p}] not found".format({"p": path}))
 	return _is_valid
 
 
@@ -252,7 +278,7 @@ func validate_path(
 # validation method for public 'save' methods
 func _is_write_operation_directory_valid(
 		directory_path: String,
-		force_write_directory: bool = true
+		force_write_directory: bool
 		) -> int:
 	# resources can only be saved to paths within the user data folder.
 	# user data path is "user://"
@@ -267,7 +293,7 @@ func _is_write_operation_directory_valid(
 		if not force_write_directory:
 			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
 					"directory at {p} does not exist".format({
-					"p": directory_path}))
+						"p": directory_path}))
 			return ERR_FILE_BAD_PATH
 		# if force writing and directory doesn't exist, create it
 		elif force_write_directory:
@@ -298,7 +324,7 @@ func _is_write_operation_path_valid(
 	if (not force_write_file and _is_path_valid):
 		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
 				"file at {p} already exists".format({
-				"p": file_path}))
+					"p": file_path}))
 		return ERR_FILE_NO_PERMISSION
 	# if all was successful,
 	return OK
