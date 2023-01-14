@@ -1,75 +1,109 @@
 extends Node2D
 
+# after running this sample scene check your user data folder for the file
+# run this sample scene repeatedly to further edit the file
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
+##############################################################################
+
+# debug arguments
+const SCRIPT_NAME := "GlobalData_SampleScene"
+const VERBOSE_LOGGING := true
+
+# amount to edit the gameDataContainer object 'example_float_data' property by
+var increase: float = 2.70
+
+onready var user_data_folder_label_node: Label =\
+		$CenterContainer/VBoxContainer/Label_UDF
+
+##############################################################################
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# update label text to display user folder text
+	# 'user://' works for file paths, but to display the actual path call OS
+	var get_user_data_folder: String = OS.get_user_data_dir()
+	user_data_folder_label_node.text = get_user_data_folder
+	
 	# caution: running unit tests will push a lot of (intentional) errors
-	var run_unit_tests = false
-	if run_unit_tests:
+	run_unit_tests(true)
+	
+	# will create a gameDataContainer (test class) object in your user data
+	# folder at the fixed path (user://saves/save1.tres), then load it and
+	# edit the default value before saving it again.
+	run_save_load_edit_example()
+
+
+##############################################################################
+
+
+# calling unit tests through an fstring dict
+func run_unit_tests(is_valid: bool = false):
+	if is_valid:
+		print("alert: unit tests push a lot of (intentional) error")
 		# run unit tests
-		print("test 1 = {1}"+"test 2 = {2}".format({
+		print("test 1 result = {1}"+
+				"test 2 result = {2}".format({
 				"1": _unit_test_save_resource_path_to_user_data(),
 				"2": _unit_test_load_invalid_resource_path()
 				}))
-	pass
-	#
-	# custom manual testing
-	#
-	var get_test_path = GlobalData.get_dirpath_user()
-#	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
-	get_test_path += "test/test2/test3/test4/"
-	var file_name = "res.tres"
-	var return_arg = GlobalData.save_resource(get_test_path, file_name, Resource.new())
-	if return_arg != OK:
-		print("error ", return_arg)
-	else:
-		print("write operation successful")
-#		var sample_path = get_test_path+file_name
-#		var sample_path = GlobalData.get_dirpath_user()+"res.tres"
-		var sample_path = GlobalData.get_dirpath_user()+"resource_new.tres"
-#		var sample_path = GlobalData.get_dirpath_user()+"score.save"
-		var _new_res = GlobalData.load_resource(sample_path)
-	#
-	#
-#	test_save(GameDataContainer.new())
-	var get_save_res = test_load(GameDataContainer)
+
+
+func run_save_load_edit_example():
+	var directory_path: String = GlobalData.get_dirpath_user()+"saves/"
+	var file_path: String = "save1.tres"
+	
+	# if the file isn't found, create it
+	# arg1 path, arg 2override the expected log
+	if not GlobalData.validate_path(directory_path+file_path, true):
+		# no file found, write a new one
+		_test_save(directory_path, file_path, GameDataContainer.new())
+
+	# arg1 pass file path, arg2 pass a type cast test
+	var get_save_res = _test_load(directory_path+file_path, GameDataContainer)
 	if get_save_res != null:
-		if "get_class" in get_save_res:
-			get_save_res.get_class()
-		print("is save a datacon? ", (get_save_res is GameDataContainer))
-		print(get_save_res)
+#		if "get_class" in get_save_res:
+#			get_save_res.get_class()
+#		print("is save a datacon? ", (get_save_res is GameDataContainer))
+#		print(get_save_res)
 		if "example_float_data" in get_save_res:
 			var get_float_data = get_save_res.example_float_data
-			print(get_float_data)
-			var increase: float = 2.70
-			print("incrementing float by {inc}, ({old}+{inc}={new})".format({
+#			print(get_float_data)
+
+			# log a line about what is happening
+			var increment_print_string =\
+				"incrementing example float from {old} by {inc}, "+\
+				"value is now {new}".format({
 				"old": get_float_data,
 				"inc": increase,
 				"new": (get_float_data+increase),
-			}))
+			})
+			# disable success logging calls by editing VERBOSE LOGGING property
+			GlobalDebug.log_success(VERBOSE_LOGGING, SCRIPT_NAME,
+					"run_save_load_edit_example",
+					increment_print_string)
 			# now save it to file
 			get_save_res.example_float_data = get_float_data+increase
-			test_save(get_save_res)
+			_test_save(directory_path, file_path, get_save_res)
 
 
-func test_save(player_save):
-	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
-	var datacon_file := "save1.tres"
+##############################################################################
+
+
+# specific to the game_data_container object 'save1.tres'
+func _test_save(
+		directory_path: String,
+		file_path: String,
+		player_save: GameDataContainer):
 #	var player_save := GameDataContainer.new()
 	var _return_arg =\
-			GlobalData.save_resource(datacon_dir, datacon_file, player_save)
+			GlobalData.save_resource(directory_path, file_path, player_save)
 
 
-func test_load(type_cast_test = null):
-	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
-	var datacon_file := "save1.tres"
+# specific to the game_data_container object 'save1.tres'
+func _test_load(file_path: String, type_cast_test = null):
 	var save_file = GlobalData.load_resource(
-			datacon_dir+datacon_file,
+			file_path,
 			type_cast_test
 	)
 	return save_file
@@ -103,6 +137,28 @@ func _unit_test_load_invalid_resource_path() -> bool:
 	else:
 		_end_result = false
 	return _end_result
+
+
+##############################################################################
+
+
+#func _dev_manual_test():
+#	# custom manual testing
+#	#
+#	var get_test_path = GlobalData.get_dirpath_user()
+##	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
+#	get_test_path += "test/test2/test3/test4/"
+#	var file_name = "res.tres"
+#	var return_arg = GlobalData.save_resource(get_test_path, file_name, Resource.new())
+#	if return_arg != OK:
+#		print("error ", return_arg)
+#	else:
+#		print("write operation successful")
+##		var sample_path = get_test_path+file_name
+##		var sample_path = GlobalData.get_dirpath_user()+"res.tres"
+#		var sample_path = GlobalData.get_dirpath_user()+"resource_new.tres"
+##		var sample_path = GlobalData.get_dirpath_user()+"score.save"
+#		var _new_res = GlobalData.load_resource(sample_path)
 
 
 #func old2():
