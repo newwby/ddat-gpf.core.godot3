@@ -11,19 +11,24 @@ extends GameGlobal
 # Set as an autoload *AFTER* DDAT_Core.GlobalDebug
 
 #//TODO
-#// finish load_resource
-#// add optional arg for making write_directory recursive
+#// add optional arg for making write_directory recursive (currently default)
 #// add file path .tres extension validation
+#// reintroduce load_json and save_json methods (dict validation)
+#// add a save/load method pair for config ini file
+#// add a save/load method pair for store_var/any node
+#// add a get_files_recursively method
+#// add file backups optional arg (push_backup on save, try_backup on load);
+#		file backups are '-backup1.tres', '-backup2.tres', etc.
+#		backups are tried sequentially if error on loading resource
+#		add customisable variable for how many backups to keep
 
 ##############################################################################
-#
-# Declare member variables here. Examples:
 
 #05. signals
 #06. enums
 
 # for use with const DATA_PATHS and calling the 'build_path' method
-enum DATA_PATH_PREFIXES {USER, LOCAL}
+enum DATA_PATH_PREFIXES {USER, LOCAL, GAME_SAVE}
 
 #07. constants
 # for passing to error logging
@@ -39,6 +44,8 @@ const DATA_PATHS := {
 	DATA_PATH_PREFIXES.USER : "user://",
 	# path to use if getting from the local project
 	DATA_PATH_PREFIXES.LOCAL : "res://",
+	# path for the runtime framework
+	DATA_PATH_PREFIXES.GAME_SAVE : "user://saves/",
 }
 
 
@@ -186,26 +193,34 @@ func load_resource(
 
 # method to save any resource or resource-extended custom class to disk.
 # call this method with 'if save_resource(*args) == OK' to validate
+#
 # [method params as follows]
 ##1, directory_path, is the path to the file location sans the file_name
 #	e.g. 'user://saves/player1.tres' should be passed as 'user://saves/'
 # (Always leave a trailing slash on the end of directory paths.)
+#
 ##2, file_name, is the name of the file
 #	e.g. 'user://saves/player1.tres' should be passed as 'player1.tres'
 #	(note: resource extensions should always be .tres for a resource)
 # the first two arguments are combined to get the full file path; they exist
 # as separate arguments so directories can be validated independent of files.
+#
 ##3, saveable_res, is the resource object to save
+#
 ##4, force_write_file, specifies whether to allow overwriting an existing
 # file; if it is set false then the resource will not be saved if it finds a
 # file (whether the file is a valid resource or not) at the file path argument.
 # You can use this to save default versions of user-customisable files like
 # data containers for game saves, player progression, or scores.
+#
 ##5, force_write_directory, specifies whether to allow creating directories
 # during the save operation; if set false will require save operations to take
 # place in an existing directory, returning with an error argument if the
 # directory doesn't exist. if arg5 is set true it will create directories when
 # the save operation is called.
+#	(calling with a force_write arg will override 'path not found' error
+#	logging for the file or directory validation methods respectively,
+#	see 'is_write_operation_directory_valid' & '_is_write_operation_path_vaild')
 func save_resource(
 		directory_path: String,
 		file_name: String,
@@ -246,8 +261,10 @@ func save_resource(
 
 
 # validate either a directory or file path, depending on the path passed.
+#
 # [method params as follows]
 ##1, path, is the path to validate
+#
 ##2, override_logging, disables calls to globalDebug. This method is called by
 # many other methods in GlobalDebug in scenarios where it may, or even is
 # expected to, fail; overriding error logging makes for a cleaner experience.
@@ -288,7 +305,8 @@ func _is_write_operation_directory_valid(
 		return ERR_FILE_BAD_PATH
 	
 	# check if the directory already exists
-	if not validate_path(directory_path):
+	# don't log error not finding path if called with force_write
+	if not validate_path(directory_path, force_write_directory):
 		# if not force writing, and directory doesn't exist, return invalid
 		if not force_write_directory:
 			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
@@ -318,7 +336,8 @@ func _is_write_operation_path_valid(
 		) -> int:
 	# check the full path is valid
 	var _is_path_valid := false
-	_is_path_valid = validate_path(file_path)
+	# don't log error not finding path if called with force_write
+	_is_path_valid = validate_path(file_path, force_write_file)
 	
 	# if file exists and we don't have permission to overwrite
 	if (not force_write_file and _is_path_valid):
@@ -330,21 +349,9 @@ func _is_write_operation_path_valid(
 	return OK
 
 
-## if arg force_validate is set will create the directory if it doesn't find it
-#func validate_directory(directory_path: String, force_validate:= false):
-#	var directory_certifier = Directory.new()
-#	if directory_certifier.dir_exists(directory_path):
-#		return true
-#	else:
-#		if directory_certifier.make_dir_recursive(directory_path) == OK\
-#		and force_validate:
-#			return true
-#		else:
-#			return false
-
-
 ##############################################################################
 
+#// ATTENTION DEV
 # Further documentation and advice on saving to/loading from disk,
 # managing loading etc, can be found at:
 #	
