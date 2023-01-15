@@ -16,6 +16,11 @@ extends GameGlobal
 #// reintroduce load_json and save_json methods (dict validation)
 #// add a save/load method pair for config ini file
 #// add a save/load method pair for store_var/any node
+#// add a get_files_recursively method
+#// add file backups optional arg (push_backup on save, try_backup on load);
+#		file backups are '-backup1.tres', '-backup2.tres', etc.
+#		backups are tried sequentially if error on loading resource
+#		add customisable variable for how many backups to keep
 
 ##############################################################################
 
@@ -23,7 +28,7 @@ extends GameGlobal
 #06. enums
 
 # for use with const DATA_PATHS and calling the 'build_path' method
-enum DATA_PATH_PREFIXES {USER, LOCAL}
+enum DATA_PATH_PREFIXES {USER, LOCAL, GAME_SAVE}
 
 #07. constants
 # for passing to error logging
@@ -39,6 +44,8 @@ const DATA_PATHS := {
 	DATA_PATH_PREFIXES.USER : "user://",
 	# path to use if getting from the local project
 	DATA_PATH_PREFIXES.LOCAL : "res://",
+	# path for the runtime framework
+	DATA_PATH_PREFIXES.GAME_SAVE : "user://saves/",
 }
 
 

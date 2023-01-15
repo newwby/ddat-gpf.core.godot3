@@ -85,10 +85,22 @@ var verbose_logging = false
 func _ready():
 	if verbose_logging:
 		log_on_ready(name, true)
+	_preload()
 
 
 ###############################################################################
 
+
+#// TODO add this to ddat-gpf.core
+# shadow this in derived classes
+# this method is called by the preload handler as part of the runtime framework
+# individual singletons that need to load from disk can signal to globalData
+# to load their required resources at this time.
+func _preload():
+	pass
+
+
+###############################################################################
 
 func log_on_ready(singleton_name: String, is_readied: bool = false):
 	var readying_is_readied = "ready!" if is_readied else "readying..."
