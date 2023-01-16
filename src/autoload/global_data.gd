@@ -21,6 +21,8 @@ extends GameGlobal
 #		file backups are '-backup1.tres', '-backup2.tres', etc.
 #		backups are tried sequentially if error on loading resource
 #		add customisable variable for how many backups to keep
+#// add error logging for failed move_to_trash on save_resource
+#// update error logging for save resource temp_file writing
 
 ##############################################################################
 
@@ -254,9 +256,44 @@ func save_resource(
 		return return_code
 	
 	# move on to the write operation
-	return_code = ResourceSaver.save(full_data_path, saveable_res)
+	# if file is new, just attempt a write (override logging)
+	if not validate_path(full_data_path, true):
+		return_code = ResourceSaver.save(full_data_path, saveable_res)
+	# if file already existed, need to safely write to prevent corruption
+	# i.e. write to a temporary file, remove the older, make temp the new file
+	else:
+		# attempt the write operation
+		var temp_data_path = directory_path+"temp_"+file_name
+		return_code = ResourceSaver.save(temp_data_path, saveable_res)
+		# if we wrote the file successfully, time to remove the old file
+		# i.e. move previous file to recycle bin/trash
+		
+		if return_code == OK:
+			# re: issue 67137, OS.move_to_trash will cause a project crash
+			# but on this branch the full_data_path should be validated
+			assert(validate_path(full_data_path, true))
+			# Note: If the user has disabled trash on their system,
+			# the file will be permanently deleted instead.
+			var get_global_path =\
+					ProjectSettings.globalize_path(full_data_path)
+			return_code = OS.move_to_trash(get_global_path)
+			# if file was moved to trash, the path should now be invalid
+			if return_code == OK:
+				assert(not validate_path(full_data_path, true))
+				# rename the temp file to be the new file
+				var path_manager = Directory.new()
+				return_code = path_manager.rename(\
+						temp_data_path, full_data_path)
+		# if the temporary file wasn't written successfully
+		else:
+			return return_code
+	
+	
 	# if all is well and the function didn't exit prior to this point
-	# should be 'OK' (int 0)
+	# successful exit points will be
+	# 1) path didn't exist and file was written, or
+	# 2) path exists, temp file written, first file trashed, temp file renamed
+	# return code should be 'OK' (int 0)
 	return return_code
 
 
