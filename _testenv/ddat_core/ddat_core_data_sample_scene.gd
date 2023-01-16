@@ -52,7 +52,7 @@ func _global_data_test_resource():
 		var sample_path = GlobalData.get_dirpath_user()+"resource_new.tres"
 #		var sample_path = GlobalData.get_dirpath_user()+"score.save"
 		var _new_res
-		if GlobalData.validate_path(sample_path) == false:
+		if GlobalData.validate_file(sample_path) == false:
 			_new_res = GlobalData.save_resource(
 				GlobalData.get_dirpath_user(),
 				"resource_new.tres",
@@ -67,7 +67,7 @@ func _global_data_test_resource():
 func _global_data_test_game_data_container():
 	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
 	var datacon_file := "save1.tres"
-	if not GlobalData.validate_path(datacon_dir+datacon_file):
+	if not GlobalData.validate_file(datacon_dir+datacon_file):
 		test_save(GameDataContainer.new(), datacon_dir, datacon_file)
 	var get_save_res = test_load(datacon_dir, datacon_file, GameDataContainer)
 	if get_save_res != null:
