@@ -41,21 +41,21 @@ func _global_data_test_resource():
 	var get_test_path = GlobalData.get_dirpath_user()
 #	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
 	get_test_path += "test/test2/test3/test4/"
-	var file_name = "res"
+	var file_name = "res.tres"
 	var return_arg = GlobalData.save_resource(get_test_path, file_name, Resource.new())
 	if return_arg != OK:
 		print("error ", return_arg)
 	else:
 		print("write operation successful")
 #		var sample_path = get_test_path+file_name
-#		var sample_path = GlobalData.get_dirpath_user()+"res"
-		var sample_path = GlobalData.get_dirpath_user()+"resource_new"
+#		var sample_path = GlobalData.get_dirpath_user()+"res.tres"
+		var sample_path = GlobalData.get_dirpath_user()+"resource_new.tres"
 #		var sample_path = GlobalData.get_dirpath_user()+"score.save"
 		var _new_res
-		if GlobalData.validate_path(sample_path+".tres") == false:
+		if GlobalData.validate_path(sample_path) == false:
 			_new_res = GlobalData.save_resource(
 				GlobalData.get_dirpath_user(),
-				"resource_new",
+				"resource_new.tres",
 				Resource.new()
 			)
 		else:
@@ -66,8 +66,8 @@ func _global_data_test_resource():
 # save file 'gameDataContainer' testing
 func _global_data_test_game_data_container():
 	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
-	var datacon_file := "save1"
-	if not GlobalData.validate_path(datacon_dir+datacon_file+".tres"):
+	var datacon_file := "save1.tres"
+	if not GlobalData.validate_path(datacon_dir+datacon_file):
 		test_save(GameDataContainer.new(), datacon_dir, datacon_file)
 	var get_save_res = test_load(datacon_dir, datacon_file, GameDataContainer)
 	if get_save_res != null:
