@@ -12,7 +12,6 @@ extends GameGlobal
 
 #//TODO
 #// add optional arg for making write_directory recursive (currently default)
-#// add file path .tres extension validation
 #// reintroduce load_json and save_json methods (dict validation)
 #// add a save/load method pair for config ini file
 #// add a save/load method pair for store_var/any node
@@ -23,6 +22,8 @@ extends GameGlobal
 #		add customisable variable for how many backups to keep
 #// add error logging for failed move_to_trash on save_resource
 #// update error logging for save resource temp_file writing
+#// split validate path into multiple validation methods (resource/directory)
+#// review validate path logging behaviour (pushing many errors)
 
 ##############################################################################
 
@@ -38,6 +39,7 @@ const SCRIPT_NAME := "GlobalData"
 #// superceded by 'verbose_logging' property of parent class
 # for developer use, enable if making changes
 #const VERBOSE_LOGGING := true
+const RESOURCE_FILE_EXTENSION := ".tres"
 
 # fixed record of data paths
 # developers can extend this to their needs
@@ -158,6 +160,9 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
+	# file paths no longer include extensions so
+	# apply .tres extension to the given file_path
+	file_path += RESOURCE_FILE_EXTENSION
 	# check path is valid before loading resource
 	# error logging redundant as validate_path method includes logging
 	var is_path_valid = validate_path(file_path)
@@ -201,9 +206,9 @@ func load_resource(
 #	e.g. 'user://saves/player1.tres' should be passed as 'user://saves/'
 # (Always leave a trailing slash on the end of directory paths.)
 #
-##2, file_name, is the name of the file
-#	e.g. 'user://saves/player1.tres' should be passed as 'player1.tres'
-#	(note: resource extensions should always be .tres for a resource)
+##2, file_name, is the name of the file *without* extension
+#	e.g. 'user://saves/player1.tres' should be passed as 'player1'
+#	(note: a '.tres' extension will always be applied)
 # the first two arguments are combined to get the full file path; they exist
 # as separate arguments so directories can be validated independent of files.
 #
@@ -231,7 +236,8 @@ func save_resource(
 		force_write_directory: bool = true
 		) -> int:
 	# combine paths
-	var full_data_path: String = directory_path+file_name
+	var full_data_path: String =\
+			directory_path+file_name+RESOURCE_FILE_EXTENSION
 	# error code (or OK) for returning
 	var return_code: int
 	
@@ -263,7 +269,8 @@ func save_resource(
 	# i.e. write to a temporary file, remove the older, make temp the new file
 	else:
 		# attempt the write operation
-		var temp_data_path = directory_path+"temp_"+file_name
+		var temp_data_path =\
+				directory_path+"temp_"+file_name+RESOURCE_FILE_EXTENSION
 		return_code = ResourceSaver.save(temp_data_path, saveable_res)
 		# if we wrote the file successfully, time to remove the old file
 		# i.e. move previous file to recycle bin/trash
@@ -317,6 +324,7 @@ func validate_path(
 	or _path_check.file_exists(path):
 		_is_valid = true
 	# error logging
+	#// should error log be replaced w/a general log? it is pushing many errors
 	if not _is_valid\
 	and not override_logging:
 		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
