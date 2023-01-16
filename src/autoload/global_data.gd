@@ -110,8 +110,8 @@ func create_directory(
 		) -> int:
 	# object to get directory class methods
 	var dir_accessor = Directory.new()
-	# do nothing if path exists (expected to fail so overridden error logging)
-	if validate_path(absolute_path, true) == false:
+	# do nothing if path exists
+	if validate_directory(absolute_path) == false:
 		# directories all the way down
 		#// TODO add optional arg for making recursive
 		dir_accessor.make_dir_recursive(absolute_path)
@@ -158,10 +158,14 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
+	print("attempt load at ", file_path)
 	# check path is valid before loading resource
-	# error logging redundant as validate_path method includes logging
-	var is_path_valid = validate_path(file_path)
+	var is_path_valid = validate_file(file_path)
 	if not is_path_valid:
+		GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+				"attempted to load non-existent resource at {p}".format({
+					"p": file_path
+				}))
 		return null
 	
 		# attempt to load resource
@@ -256,8 +260,8 @@ func save_resource(
 		return return_code
 	
 	# move on to the write operation
-	# if file is new, just attempt a write (override logging)
-	if not validate_path(full_data_path, true):
+	# if file is new, just attempt a write
+	if not validate_file(full_data_path):
 		return_code = ResourceSaver.save(full_data_path, saveable_res)
 	# if file already existed, need to safely write to prevent corruption
 	# i.e. write to a temporary file, remove the older, make temp the new file
@@ -271,7 +275,7 @@ func save_resource(
 		if return_code == OK:
 			# re: issue 67137, OS.move_to_trash will cause a project crash
 			# but on this branch the full_data_path should be validated
-			assert(validate_path(full_data_path, true))
+			assert(validate_file(full_data_path, true))
 			# Note: If the user has disabled trash on their system,
 			# the file will be permanently deleted instead.
 			var get_global_path =\
@@ -279,7 +283,7 @@ func save_resource(
 			return_code = OS.move_to_trash(get_global_path)
 			# if file was moved to trash, the path should now be invalid
 			if return_code == OK:
-				assert(not validate_path(full_data_path, true))
+				assert(not validate_file(full_data_path))
 				# rename the temp file to be the new file
 				var path_manager = Directory.new()
 				return_code = path_manager.rename(\
@@ -297,31 +301,31 @@ func save_resource(
 	return return_code
 
 
-# validate either a directory or file path, depending on the path passed.
-#
+# as the method validate_path, but specifically checking for files existing
+# useful for one liner conditionals and built-in error logging
+# (saves creating a file/directory object manually)
 # [method params as follows]
-##1, path, is the path to validate
-#
-##2, override_logging, disables calls to globalDebug. This method is called by
-# many other methods in GlobalDebug in scenarios where it may, or even is
-# expected to, fail; overriding error logging makes for a cleaner experience.
-func validate_path(
-		path: String,
-		override_logging: bool = false
-		) -> bool:
-	var _path_check = Directory.new()
-	var _is_valid = false
-	#// add logic for stripping usr/res path mistakenly passed by dev?
-	# for method to return true only needs to be a valid directory OR file
-	if _path_check.dir_exists(path)\
-	or _path_check.file_exists(path):
-		_is_valid = true
-	# error logging
-	if not _is_valid\
-	and not override_logging:
-		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
-				"file or directory [{p}] not found".format({"p": path}))
-	return _is_valid
+##1, path, is the file path to validate
+##2, assert_path, forces an assert in debug builds and error logging in both
+# debug and release builds. Set this param to true when you require a path
+# to be valid before you continue with an operation.
+func validate_file(given_path: String, assert_path: bool = false) -> bool:
+	# call the private validation method as a file
+	return _validate(given_path, assert_path, true)
+
+
+# as the method validate_path, but specifically checking for directories
+# useful for one liner conditionals and built-in error logging
+# (saves creating a file/directory object manually)
+# [method params as follows]
+##1, path, is the directory path to validate
+##2, assert_path, forces an assert in debug builds and error logging in both
+# debug and release builds. Set this param to true when you require a path
+# to be valid before you continue with an operation.
+func validate_directory(given_path: String, assert_path: bool = false) -> bool:
+	# call the private validation method as a directory
+	return _validate(given_path, assert_path, false)
+
 
 
 ##############################################################################
@@ -342,8 +346,7 @@ func _is_write_operation_directory_valid(
 		return ERR_FILE_BAD_PATH
 	
 	# check if the directory already exists
-	# don't log error not finding path if called with force_write
-	if not validate_path(directory_path, force_write_directory):
+	if not validate_directory(directory_path):
 		# if not force writing, and directory doesn't exist, return invalid
 		if not force_write_directory:
 			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
@@ -374,7 +377,7 @@ func _is_write_operation_path_valid(
 	# check the full path is valid
 	var _is_path_valid := false
 	# don't log error not finding path if called with force_write
-	_is_path_valid = validate_path(file_path, force_write_file)
+	_is_path_valid = validate_file(file_path)
 	
 	# if file exists and we don't have permission to overwrite
 	if (not force_write_file and _is_path_valid):
@@ -384,6 +387,42 @@ func _is_write_operation_path_valid(
 		return ERR_FILE_NO_PERMISSION
 	# if all was successful,
 	return OK
+
+
+# both the public methods validate_path and validate_directory call this
+# private method to actually do things; the methods are similar in execution
+# but are different checks, so they are essentially args for this method
+func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
+	var _path_check = Directory.new()
+	var _is_valid = false
+	
+	# validate_file call
+	if is_file:
+		_is_valid = _path_check.file_exists(given_path)
+	# validate_directory call
+	elif not is_file:
+		_is_valid = _path_check.dir_exists(given_path)
+	
+	var log_string = "file" if is_file else "directory"
+	
+	if assert_path\
+	and not _is_valid:
+		GlobalDebug.log_error(SCRIPT_NAME,
+				"_validate"+" (from validate_{m})".format({"m": log_string}),
+				"path: [{p}] is not a valid {m}.".format({
+					"p": given_path,
+					"m": log_string
+				}))
+	# this method (and validate_path/validate_directory) will stop project
+	# execution if the assert_path parameter is passed a true arg
+	if assert_path:
+		assert(_is_valid)
+	
+	# will be true if path existed and was the correct type
+	# will be false otherwise
+	return _is_valid
+	
+	
 
 
 ##############################################################################
@@ -414,3 +453,35 @@ func _is_write_operation_path_valid(
 
 ##############################################################################
 
+
+#// DEPRECATE
+# validate either a directory or file path, depending on the path passed.
+# saves creating a directory or file object, useful for one line conditionals
+# this method is used for determining if *something* exists at the actual path,
+# if you are specifically looking for whether a file or directory exists, it is
+# better to use validate_file or validate_directory.
+# [method params as follows]
+##1, path, is the path to validate
+#
+##2, override_logging, disables calls to globalDebug. This method is called by
+# many other methods in GlobalDebug in scenarios where it may, or even is
+# expected to, fail; overriding error logging makes for a cleaner experience.
+func validate_path(
+		path: String,
+		override_logging: bool = false
+		) -> bool:
+	var _path_check = Directory.new()
+	var _is_valid = false
+	#// add logic for stripping usr/res path mistakenly passed by dev?
+	# for method to return true only needs to be a valid directory OR file
+	if _path_check.dir_exists(path)\
+	or _path_check.file_exists(path):
+		_is_valid = true
+	# error logging
+	if not _is_valid\
+	and not override_logging:
+		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
+				"file or directory [{p}] not found".format({"p": path}))
+	return _is_valid
+	
+	
