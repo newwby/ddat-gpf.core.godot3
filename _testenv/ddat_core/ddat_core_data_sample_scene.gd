@@ -13,7 +13,7 @@ func _ready():
 	if run_manual_tests:
 		_manualtest_datamgr_resource()
 		_manualtest_datamgr_game_data_container()
-
+		_manualtest_datamgr_get_paths()
 
 ##############################################################################
 
@@ -86,6 +86,42 @@ func _manualtest_datamgr_game_data_container():
 			# now save it to file
 			get_save_res.example_float_data = get_float_data+increase
 			test_save(get_save_res, datacon_dir, datacon_file)
+
+
+#// can extend this into a unit test by
+# - validating or creating testing directory and files at start
+# - turning below logic into a loop
+func _manualtest_datamgr_get_paths():
+	var path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.GAME_SAVE]
+	
+	var get_files = GlobalData.get_file_paths(path)
+	print("test1", " expected return", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "egg")
+	print("test2", " expected fail", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "sav")
+	print("test3", " expected return", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "", ".res")
+	print("test4", " expected fail", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "", ".tres")
+	print("test5", " expected return", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "", "", "save")
+	print("test6", " expected fail", get_files)
+	print("#\n")
+	
+	get_files = GlobalData.get_file_paths(path, "", "", "buttermilk")
+	print("test7", " expected return", get_files)
+	print("#")
+
 
 
 ##############################################################################
