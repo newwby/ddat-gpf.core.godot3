@@ -180,6 +180,12 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
+	# add type hint to load?
+#	var type_hint = ""
+#	if type_cast is Resource\
+#	and "get_class" in type_cast:
+#			type_hint = str(type_cast.get_class())
+		
 	# check path is valid before loading resource
 	var is_path_valid = validate_file(file_path)
 	if not is_path_valid:
@@ -502,35 +508,4 @@ func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
 
 
 ##############################################################################
-
-
-#// DEPRECATE
-# validate either a directory or file path, depending on the path passed.
-# saves creating a directory or file object, useful for one line conditionals
-# this method is used for determining if *something* exists at the actual path,
-# if you are specifically looking for whether a file or directory exists, it is
-# better to use validate_file or validate_directory.
-# [method params as follows]
-##1, path, is the path to validate
-#
-##2, override_logging, disables calls to globalDebug. This method is called by
-# many other methods in GlobalDebug in scenarios where it may, or even is
-# expected to, fail; overriding error logging makes for a cleaner experience.
-func validate_path(
-		path: String,
-		override_logging: bool = false
-		) -> bool:
-	var _path_check = Directory.new()
-	var _is_valid = false
-	#// add logic for stripping usr/res path mistakenly passed by dev?
-	# for method to return true only needs to be a valid directory OR file
-	if _path_check.dir_exists(path)\
-	or _path_check.file_exists(path):
-		_is_valid = true
-	# error logging
-	if not _is_valid\
-	and not override_logging:
-		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
-				"file or directory [{p}] not found".format({"p": path}))
-	return _is_valid
 
