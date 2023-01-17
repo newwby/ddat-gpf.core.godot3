@@ -24,7 +24,8 @@ extends GameGlobal
 #// update error logging for save resource temp_file writing
 
 #// add optional arg for making write_directory recursive (currently default)
-#// add a get_files_recursively method
+
+#// add a minor logging method for get_file_paths (globalDebug update)
 
 #// update save_resource with push_backup option and logic (const backup steps)
 #// update load_resource to try and load resource on fail state
@@ -58,6 +59,16 @@ const DATA_PATHS := {
 	# path for the runtime framework
 	DATA_PATH_PREFIXES.GAME_SAVE : "user://saves/",
 }
+
+
+##############################################################################
+
+# virtual methods
+
+
+# enable verbose logging here if required
+#func _ready():
+#	verbose_logging = true
 
 
 ##############################################################################
@@ -160,6 +171,87 @@ func get_dirpath_local() -> String:
 # they add their own prefixes to the DATA_PATH dict/db.
 func get_dirpath_user() -> String:
 	return DATA_PATHS[DATA_PATH_PREFIXES.USER]
+
+
+# This method gets the file path for every file in a directory and returns
+# those file paths within an array. Caller can then use those file paths
+# to query file types or load files.
+# Optional arguments can allow the caller to exclude specific files
+# [method params as follows]
+##1, directory_path, is the path to the directory you wish to read files from
+#	(always pass directories with a trailing forward slash /)
+##2, req_file_prefix, file must begin with this string
+##3, req_file_suffix, file must end with this string (including extension)
+##4, excl_substring, if found in the file name, this file is ignored
+#	(leave params as default (i.e. empty strings or "") to ignore behaviour)
+func get_file_paths(
+		directory_path: String,
+		req_file_prefix: String = "",
+		req_file_suffix: String = "",
+		excl_substring: String = "") -> Array:
+	# validate path
+	var dir_access := Directory.new()
+	var file_name := ""
+	var return_file_paths := []
+	# find the directory, loop through the directory
+	if dir_access.open(directory_path) == OK:
+		# skip if directory couldn't be opened
+		if dir_access.list_dir_begin() != OK:
+			return return_file_paths
+		# find first file in directory, prep validation bool, and start
+		file_name = dir_access.get_next()
+		var add_found_file = true
+		while file_name != "":
+			# check isn't a directory (i.e. is a file)
+			if not dir_access.current_is_dir():
+				# set validation default value
+				add_found_file = true
+				# validate the file name
+				# validation block 1
+				if req_file_prefix != "":
+					if not file_name.begins_with(req_file_prefix):
+						add_found_file = false
+						# successful validation to exempt a file
+						#// need a minor logging method added
+						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
+								"get_file_paths",
+								"prefix {p} not in file name {f}".format({
+									"p": req_file_prefix,
+									"f": file_name
+								}))
+				# validation block 2
+				if req_file_suffix != "":
+					if not file_name.ends_with(req_file_suffix):
+						add_found_file = false
+						# successful validation to exempt a file
+						#// need a minor logging method added
+						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
+								"get_file_paths",
+								"suffix {s} not in file name {f}".format({
+									"s": req_file_suffix,
+									"f": file_name
+								}))
+				# validation block 3
+				if excl_substring != "":
+					if excl_substring in file_name:
+						add_found_file = false
+						# successful validation to exempt a file
+						#// need a minor logging method added
+						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
+								"get_file_paths",
+								"bad substring {s} in file name {f}".format({
+									"s": excl_substring,
+									"f": file_name
+								}))
+				# validation checks passed successfully
+				if add_found_file:
+					return_file_paths.append(directory_path+file_name)
+				# if they didn't, nothing is appended
+			# end of loop
+			# get next file
+			file_name = dir_access.get_next()
+		dir_access.list_dir_end()
+	return return_file_paths
 
 
 # this method loads and returns (if valid) a resource from disk
