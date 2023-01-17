@@ -39,6 +39,9 @@ const SCRIPT_NAME := "GlobalData"
 # for developer use, enable if making changes
 #const VERBOSE_LOGGING := true
 
+# the path for saved resources
+const RESOURCE_FILE_EXTENSION := ".tres"
+
 # fixed record of data paths
 # developers can extend this to their needs
 const DATA_PATHS := {
@@ -158,7 +161,7 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
-	print("attempt load at ", file_path)
+	
 	# check path is valid before loading resource
 	var is_path_valid = validate_file(file_path)
 	if not is_path_valid:
@@ -258,6 +261,13 @@ func save_resource(
 			)
 	if return_code != OK:
 		return return_code
+	
+	# validate write extension is valid
+	if not _is_resource_extension_valid(full_data_path):
+		# _is_resource_extension_valid already includes logging, redundant
+#		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+#				"resource extension invalid")
+		return ERR_FILE_CANT_WRITE
 	
 	# move on to the write operation
 	# if file is new, just attempt a write
@@ -387,6 +397,29 @@ func _is_write_operation_path_valid(
 		return ERR_FILE_NO_PERMISSION
 	# if all was successful,
 	return OK
+
+
+# used to validate that file paths are for valid resource extensions
+# pass the file path as an argument
+func _is_resource_extension_valid(resource_file_path: String) -> bool:
+	# returns the last x characters from the file path string, where
+	# x is the length of the RESOURCE_FILE_EXTENSION constant
+	# uses length() as a starting point, subtracts to get starting position
+	# of substring then -1 arg returns remaining chars (the constant length)
+	var extension =\
+			resource_file_path.substr(
+			resource_file_path.length()-RESOURCE_FILE_EXTENSION.length(),
+			-1
+			)
+	# comparison bool value
+	var is_valid_extension = (extension == RESOURCE_FILE_EXTENSION)
+	if not is_valid_extension:
+		GlobalDebug.log_error(SCRIPT_NAME, "_is_resource_extension_valid",
+				"invalid extension, expected {c} but got {e}".format({
+					"c": RESOURCE_FILE_EXTENSION,
+					"e": extension
+				}))
+	return is_valid_extension
 
 
 # both the public methods validate_path and validate_directory call this
