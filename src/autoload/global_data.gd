@@ -11,18 +11,24 @@ extends GameGlobal
 # Set as an autoload *AFTER* DDAT_Core.GlobalDebug
 
 #//TODO
-#// add optional arg for making write_directory recursive (currently default)
-#// add file path .tres extension validation
-#// reintroduce load_json and save_json methods (dict validation)
+#// add (reintroduce) save/load method pair for json-dict
 #// add a save/load method pair for config ini file
 #// add a save/load method pair for store_var/any node
-#// add a get_files_recursively method
+
 #// add file backups optional arg (push_backup on save, try_backup on load);
 #		file backups are '-backup1.tres', '-backup2.tres', etc.
 #		backups are tried sequentially if error on loading resource
 #		add customisable variable for how many backups to keep
+
 #// add error logging for failed move_to_trash on save_resource
 #// update error logging for save resource temp_file writing
+
+#// add optional arg for making write_directory recursive (currently default)
+#// add a get_files_recursively method
+
+#// update save_resource with push_backup option and logic (const backup steps)
+#// update load_resource to try and load resource on fail state
+#// write load_all_resources_from_directory (with recursive param)
 
 ##############################################################################
 
@@ -108,19 +114,32 @@ func build_path(
 # Does nothing if the path already exists.
 # [method params as follows]
 ##1, absolute_path, is the full path to the directory
+##2, write_recursively, specifies whether to write missing directories in
+# the file path on the way to the target directory. Defaults to true but
+# if specified 
 func create_directory(
-		absolute_path: String
+		absolute_path: String,
+		write_recursively: bool = true
 		) -> int:
 	# object to get directory class methods
 	var dir_accessor = Directory.new()
+	var return_code = OK
 	# do nothing if path exists
 	if validate_directory(absolute_path) == false:
 		# directories all the way down
-		#// TODO add optional arg for making recursive
-		dir_accessor.make_dir_recursive(absolute_path)
-		return OK
+		if not write_recursively:
+			return_code = dir_accessor.make_dir(absolute_path)
+		else:
+			return_code = dir_accessor.make_dir_recursive(absolute_path)
 	else:
-		return ERR_CANT_CREATE
+		return_code = ERR_CANT_CREATE
+	# if ok, return, else log and return error
+	if return_code != OK:
+		GlobalDebug.log_error(SCRIPT_NAME, "create_directory",
+				"failed to create directory at {p}".format({
+					"p": absolute_path
+				}))
+	return return_code
 
 
 # this method returns the string value of the DATA_PATHS (dict) database,
@@ -161,7 +180,6 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
-	
 	# check path is valid before loading resource
 	var is_path_valid = validate_file(file_path)
 	if not is_path_valid:
@@ -454,8 +472,6 @@ func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
 	# will be true if path existed and was the correct type
 	# will be false otherwise
 	return _is_valid
-	
-	
 
 
 ##############################################################################
@@ -483,6 +499,7 @@ func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
 # Note that writing files in the executable path only works if the executable
 # is placed in a writable location (i.e. not Program Files or another directory
 # that is read-only for regular users).
+
 
 ##############################################################################
 
@@ -516,5 +533,4 @@ func validate_path(
 		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
 				"file or directory [{p}] not found".format({"p": path}))
 	return _is_valid
-	
-	
+
