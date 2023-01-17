@@ -2,18 +2,17 @@ extends Node2D
 
 ##############################################################################
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# caution: running unit tests will push a lot of (intentional) errors
-	var run_unit_tests = false
-	if run_unit_tests:
-		# run unit tests
-		print("test 1 = {1}"+"test 2 = {2}".format({
-				"1": _unit_test_save_resource_path_to_user_data(),
-				"2": _unit_test_load_invalid_resource_path()
-				}))
-	_global_data_test_resource()
-	_global_data_test_game_data_container()
+	_run_unit_tests(false)
+	
+	# run manual tests
+	var run_manual_tests = false
+	if run_manual_tests:
+		_manualtest_datamgr_resource()
+		_manualtest_datamgr_game_data_container()
 
 
 ##############################################################################
@@ -37,7 +36,7 @@ func test_load(datacon_dir: String, datacon_file: String, type_cast = null):
 
 
 # custom manual testing part 1
-func _global_data_test_resource():
+func _manualtest_datamgr_resource():
 	var get_test_path = GlobalData.get_dirpath_user()
 #	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
 	get_test_path += "test/test2/test3/test4/"
@@ -64,7 +63,7 @@ func _global_data_test_resource():
 
 # custom manual testing part 2
 # save file 'gameDataContainer' testing
-func _global_data_test_game_data_container():
+func _manualtest_datamgr_game_data_container():
 	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
 	var datacon_file := "save1.tres"
 	if not GlobalData.validate_file(datacon_dir+datacon_file):
@@ -90,6 +89,26 @@ func _global_data_test_game_data_container():
 
 
 ##############################################################################
+
+
+# holder of unit tests in this sample scene
+func _run_unit_tests(do_tests: bool = false):
+	var run_unit_tests = do_tests
+	print("run unit tests = ", run_unit_tests)
+	if run_unit_tests:
+		var unit_test_record = {
+			"save_resource_path_to_user_data":
+				_unit_test_save_resource_path_to_user_data(),
+			"load_invalid_resource_path":
+				_unit_test_load_invalid_resource_path(),
+			"save_and_load_resource":
+				_unit_test_save_and_load_resource()
+		}
+		for test_id in unit_test_record:
+			print("running test {x}, result = {r}".format({
+				"x": test_id,
+				"r": unit_test_record[test_id]
+			}))
 
 
 # paths must begin with user://
@@ -121,3 +140,8 @@ func _unit_test_load_invalid_resource_path() -> bool:
 		_end_result = false
 	return _end_result
 
+
+#// TODO - create a resource with a custom value,
+#	save it to disk, then attempt to load it
+func _unit_test_save_and_load_resource():
+	pass
