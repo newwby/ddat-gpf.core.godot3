@@ -143,7 +143,9 @@ func _run_unit_tests(do_tests: bool = false):
 			"_unit_test_get_paths_main":
 				_unit_test_get_paths_main(),
 			"_unit_test_load_resources_in_directory":
-				_unit_test_load_resources_in_directory()
+				_unit_test_load_resources_in_directory(),
+			"_unit_test_save_resource_with_backup":
+				_unit_test_save_resource_with_backup()
 		}
 		for test_id in unit_test_record:
 			print("running test {x}, result = {r}".format({
@@ -388,3 +390,60 @@ func _unit_test_load_resources_in_directory():
 	print("successful load and validate")
 	return true
 
+
+# this test assumes save_resource is working
+# the point of this unit test is to read a backup after saving different files,
+# getting the non-default file from backup instead of the more recent default
+func _unit_test_save_resource_with_backup():
+	print("running _unit_test_save_resource_with_backup ")
+	var return_code
+	# setup the args for the test files
+	var test_save_path :=\
+			"user://unit_test/save_resource_with_backup/"
+	var path_test_file := "file1.tres"
+	# get two files ready
+	var save_file_1 = GameDataContainer.new()
+	var save_file_2 = GameDataContainer.new()
+	# gameDataContainers default to false on example_bool_data
+	# so adjust the first file to be different
+	save_file_1.example_bool_data = true
+	
+	# save the first file at the example path
+	return_code = GlobalData.save_resource(\
+			test_save_path, path_test_file, save_file_1)
+	# file expected to save succesfully
+	if return_code != OK:
+		print("failed to save file 1")
+		return false
+	
+	# save the second file at the SAME example path
+	return_code = GlobalData.save_resource(\
+			test_save_path, path_test_file, save_file_2, true, true, true)
+	# file expected to save succesfully
+	if return_code != OK:
+		print("failed to save file 2")
+		return false
+	
+	var load_backup_path = "file1_backup.tres"
+	# both files should be saved
+	var testing_file
+	testing_file = GlobalData.load_resource(
+				(test_save_path+load_backup_path)
+	)
+	#// replace with type_cast arg test?
+	if testing_file is GameDataContainer:
+		print("loading file in _unit_test_save_resource_with_backup,\n"+\
+		"expected value is {e}, actual value is {a}".format({
+			"e": true,
+			"a": testing_file.example_bool_data
+		}))
+		if (testing_file.example_bool_data == true):
+			return true
+		else:
+			return false
+	else:
+		print("returned file incorrect type")
+		return false
+	
+	
+ 
