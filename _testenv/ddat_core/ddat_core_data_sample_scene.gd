@@ -141,7 +141,9 @@ func _run_unit_tests(do_tests: bool = false):
 			"save_and_load_resource":
 				_unit_test_save_and_load_resource(),
 			"_unit_test_get_paths_main":
-				_unit_test_get_paths_main()
+				_unit_test_get_paths_main(),
+			"_unit_test_load_resources_in_directory":
+				_unit_test_load_resources_in_directory()
 		}
 		for test_id in unit_test_record:
 			print("running test {x}, result = {r}".format({
@@ -186,6 +188,7 @@ func _unit_test_save_and_load_resource():
 	pass
 
 
+# this test assumes save_resource is working
 # unit test for different inputs to the globalData.get_path method
 # this unit test will rewrite the directory/files each time
 func _unit_test_get_paths_main():
@@ -336,4 +339,52 @@ func _unit_test_get_paths_main():
 	return end_result
 
 
+# this test assumes save_resource is working
+# unit test for different inputs to the globalData.load_resources_in_directory
+# this unit test will rewrite the directory/files each time
+func _unit_test_load_resources_in_directory():
+	# setup the args for the test files
+	var test_save_path := "user://unit_test/load_resources_in_directory/"
+	var path_test_file_1 := "file1.tres"
+	var path_test_file_2 := "file2.tres"
+	var path_test_file_3 := "file3.tres"
+	var test_value_1 := 1.11
+	var test_value_2 := 2.22
+	var test_value_3 := 3.33
+	var res_test_file_1 = GameDataContainer.new()
+	res_test_file_1.example_float_data = test_value_1
+	var res_test_file_2 = GameDataContainer.new()
+	res_test_file_2.example_float_data = test_value_2
+	var res_test_file_3 = GameDataContainer.new()
+	res_test_file_3.example_float_data = test_value_3
+	# force write the test files
+	if GlobalData.save_resource(
+			test_save_path, path_test_file_1, res_test_file_1) != OK:
+		print("_unit_test_load_resources_in_directory test setup error 1")
+		return
+	if GlobalData.save_resource(
+			test_save_path, path_test_file_2, res_test_file_2) != OK:
+		print("_unit_test_load_resources_in_directory test setup error 2")
+		return
+	if GlobalData.save_resource(
+			test_save_path, path_test_file_3, res_test_file_3) != OK:
+		print("_unit_test_load_resources_in_directory test setup error 3")
+	
+	var test_res_load =\
+			GlobalData.load_resources_in_directory(test_save_path)
+	print("got file paths, ", test_res_load)
+	if test_res_load.empty():
+		print("no loaded object")
+		return false
+	for loaded_obj in test_res_load:
+		if loaded_obj is GameDataContainer:
+			print("object ", loaded_obj, " w/float data of ",
+					loaded_obj.example_float_data)
+			if not loaded_obj.example_float_data\
+					in [test_value_1, test_value_2, test_value_3]:
+				print("loaded object has invalid float data")
+				return false
+	#
+	print("successful load and validate")
+	return true
 
