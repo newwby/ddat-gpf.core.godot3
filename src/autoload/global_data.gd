@@ -11,18 +11,25 @@ extends GameGlobal
 # Set as an autoload *AFTER* DDAT_Core.GlobalDebug
 
 #//TODO
-#// add optional arg for making write_directory recursive (currently default)
-#// add file path .tres extension validation
-#// reintroduce load_json and save_json methods (dict validation)
+#// add (reintroduce) save/load method pair for json-dict
 #// add a save/load method pair for config ini file
 #// add a save/load method pair for store_var/any node
-#// add a get_files_recursively method
+
 #// add file backups optional arg (push_backup on save, try_backup on load);
 #		file backups are '-backup1.tres', '-backup2.tres', etc.
 #		backups are tried sequentially if error on loading resource
 #		add customisable variable for how many backups to keep
+
 #// add error logging for failed move_to_trash on save_resource
 #// update error logging for save resource temp_file writing
+
+#// add optional arg for making write_directory recursive (currently default)
+
+#// add a minor logging method for get_file_paths (globalDebug update)
+
+#// update save_resource with push_backup option and logic (const backup steps)
+#// update load_resource to try and load resource on fail state
+#// write load_all_resources_from_directory (with recursive param)
 
 ##############################################################################
 
@@ -39,6 +46,9 @@ const SCRIPT_NAME := "GlobalData"
 # for developer use, enable if making changes
 #const VERBOSE_LOGGING := true
 
+# the path for saved resources
+const RESOURCE_FILE_EXTENSION := ".tres"
+
 # fixed record of data paths
 # developers can extend this to their needs
 const DATA_PATHS := {
@@ -49,6 +59,16 @@ const DATA_PATHS := {
 	# path for the runtime framework
 	DATA_PATH_PREFIXES.GAME_SAVE : "user://saves/",
 }
+
+
+##############################################################################
+
+# virtual methods
+
+
+# enable verbose logging here if required
+#func _ready():
+#	verbose_logging = true
 
 
 ##############################################################################
@@ -105,19 +125,32 @@ func build_path(
 # Does nothing if the path already exists.
 # [method params as follows]
 ##1, absolute_path, is the full path to the directory
+##2, write_recursively, specifies whether to write missing directories in
+# the file path on the way to the target directory. Defaults to true but
+# if specified 
 func create_directory(
-		absolute_path: String
+		absolute_path: String,
+		write_recursively: bool = true
 		) -> int:
 	# object to get directory class methods
 	var dir_accessor = Directory.new()
+	var return_code = OK
 	# do nothing if path exists
 	if validate_directory(absolute_path) == false:
 		# directories all the way down
-		#// TODO add optional arg for making recursive
-		dir_accessor.make_dir_recursive(absolute_path)
-		return OK
+		if not write_recursively:
+			return_code = dir_accessor.make_dir(absolute_path)
+		else:
+			return_code = dir_accessor.make_dir_recursive(absolute_path)
 	else:
-		return ERR_CANT_CREATE
+		return_code = ERR_CANT_CREATE
+	# if ok, return, else log and return error
+	if return_code != OK:
+		GlobalDebug.log_error(SCRIPT_NAME, "create_directory",
+				"failed to create directory at {p}".format({
+					"p": absolute_path
+				}))
+	return return_code
 
 
 # this method returns the string value of the DATA_PATHS (dict) database,
@@ -140,6 +173,110 @@ func get_dirpath_user() -> String:
 	return DATA_PATHS[DATA_PATH_PREFIXES.USER]
 
 
+# This method gets the file path for every file in a directory and returns
+# those file paths within an array. Caller can then use those file paths
+# to query file types or load files.
+# Optional arguments can allow the caller to exclude specific files
+# [method params as follows]
+##1, directory_path, is the path to the directory you wish to read files from
+#	(always pass directories with a trailing forward slash /)
+##2, req_file_prefix, file must begin with this string
+##3, req_file_suffix, file must end with this string (including extension)
+##4, excl_substrings, array of strings which the file name is checked against
+#	and the file name must **not** include
+##5, incl_substrings, array of strings which the file name is checked against
+#	and the file name must include
+#	(leave params as default (i.e. empty strings or "") to ignore behaviour)
+func get_file_paths(
+		directory_path: String,
+		req_file_prefix: String = "",
+		req_file_suffix: String = "",
+		excl_substrings: PoolStringArray = [],
+		incl_substrings: PoolStringArray = []) -> PoolStringArray:
+	# validate path
+	var dir_access := Directory.new()
+	var file_name := ""
+	var return_file_paths: PoolStringArray = []
+	
+	# find the directory, loop through the directory
+	if dir_access.open(directory_path) == OK:
+		# skip if directory couldn't be opened
+		if dir_access.list_dir_begin() != OK:
+			return return_file_paths
+		# find first file in directory, prep validation bool, and start
+		file_name = dir_access.get_next()
+		var add_found_file = true
+		while file_name != "":
+			# check isn't a directory (i.e. is a file)
+			if not dir_access.current_is_dir():
+				# set validation default value
+				add_found_file = true
+				# validate the file name
+				# validation block 1
+				if req_file_prefix != "":
+					if not file_name.begins_with(req_file_prefix):
+						add_found_file = false
+						# successful validation to exempt a file
+						#// need a minor logging method added
+						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
+								"get_file_paths",
+								"prefix {p} not in file name {f}".format({
+									"p": req_file_prefix,
+									"f": file_name
+								}))
+				# validation block 2
+				if req_file_suffix != "":
+					if not file_name.ends_with(req_file_suffix):
+						add_found_file = false
+						# successful validation to exempt a file
+						#// need a minor logging method added
+						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
+								"get_file_paths",
+								"suffix {s} not in file name {f}".format({
+									"s": req_file_suffix,
+									"f": file_name
+								}))
+				# validation block 3
+				if not excl_substrings.empty():
+					for force_exclude in excl_substrings:
+						if typeof(force_exclude) == TYPE_STRING:
+							if force_exclude in file_name:
+								add_found_file = false
+								# successful validation to exempt a file
+								#// need a minor logging method added
+								GlobalDebug.log_success(verbose_logging,
+										SCRIPT_NAME,
+										"get_file_paths",
+										"bad str {s} in file name {f}".format({
+											"s": force_exclude,
+											"f": file_name
+										}))
+				# validation block 4
+				if not incl_substrings.empty():
+					for force_include in incl_substrings:
+						if typeof(force_include) == TYPE_STRING:
+							if not force_include in file_name:
+								add_found_file = false
+								# successful validation to exempt a file
+								#// need a minor logging method added
+								GlobalDebug.log_success(verbose_logging,
+										SCRIPT_NAME,
+										"get_file_paths",
+										"no str {s} in file name {f}".format({
+											"s": force_include,
+											"f": file_name
+										}))
+				# validation checks passed successfully
+				if add_found_file:
+					return_file_paths.append(directory_path+file_name)
+				# if they didn't, nothing is appended
+			# end of loop
+			# get next file
+			file_name = dir_access.get_next()
+		dir_access.list_dir_end()
+	return return_file_paths
+
+
 # this method loads and returns (if valid) a resource from disk
 # returns either a loaded resource, or a null value if it is invalid
 # [method params as follows]
@@ -158,7 +295,12 @@ func load_resource(
 		file_path: String,
 		type_cast = null
 		):
-	print("attempt load at ", file_path)
+	# add type hint to load?
+#	var type_hint = ""
+#	if type_cast is Resource\
+#	and "get_class" in type_cast:
+#			type_hint = str(type_cast.get_class())
+		
 	# check path is valid before loading resource
 	var is_path_valid = validate_file(file_path)
 	if not is_path_valid:
@@ -258,6 +400,13 @@ func save_resource(
 			)
 	if return_code != OK:
 		return return_code
+	
+	# validate write extension is valid
+	if not _is_resource_extension_valid(full_data_path):
+		# _is_resource_extension_valid already includes logging, redundant
+#		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+#				"resource extension invalid")
+		return ERR_FILE_CANT_WRITE
 	
 	# move on to the write operation
 	# if file is new, just attempt a write
@@ -389,6 +538,29 @@ func _is_write_operation_path_valid(
 	return OK
 
 
+# used to validate that file paths are for valid resource extensions
+# pass the file path as an argument
+func _is_resource_extension_valid(resource_file_path: String) -> bool:
+	# returns the last x characters from the file path string, where
+	# x is the length of the RESOURCE_FILE_EXTENSION constant
+	# uses length() as a starting point, subtracts to get starting position
+	# of substring then -1 arg returns remaining chars (the constant length)
+	var extension =\
+			resource_file_path.substr(
+			resource_file_path.length()-RESOURCE_FILE_EXTENSION.length(),
+			-1
+			)
+	# comparison bool value
+	var is_valid_extension = (extension == RESOURCE_FILE_EXTENSION)
+	if not is_valid_extension:
+		GlobalDebug.log_error(SCRIPT_NAME, "_is_resource_extension_valid",
+				"invalid extension, expected {c} but got {e}".format({
+					"c": RESOURCE_FILE_EXTENSION,
+					"e": extension
+				}))
+	return is_valid_extension
+
+
 # both the public methods validate_path and validate_directory call this
 # private method to actually do things; the methods are similar in execution
 # but are different checks, so they are essentially args for this method
@@ -421,8 +593,6 @@ func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
 	# will be true if path existed and was the correct type
 	# will be false otherwise
 	return _is_valid
-	
-	
 
 
 ##############################################################################
@@ -451,37 +621,6 @@ func _validate(given_path: String, assert_path: bool, is_file: bool) -> bool:
 # is placed in a writable location (i.e. not Program Files or another directory
 # that is read-only for regular users).
 
+
 ##############################################################################
 
-
-#// DEPRECATE
-# validate either a directory or file path, depending on the path passed.
-# saves creating a directory or file object, useful for one line conditionals
-# this method is used for determining if *something* exists at the actual path,
-# if you are specifically looking for whether a file or directory exists, it is
-# better to use validate_file or validate_directory.
-# [method params as follows]
-##1, path, is the path to validate
-#
-##2, override_logging, disables calls to globalDebug. This method is called by
-# many other methods in GlobalDebug in scenarios where it may, or even is
-# expected to, fail; overriding error logging makes for a cleaner experience.
-func validate_path(
-		path: String,
-		override_logging: bool = false
-		) -> bool:
-	var _path_check = Directory.new()
-	var _is_valid = false
-	#// add logic for stripping usr/res path mistakenly passed by dev?
-	# for method to return true only needs to be a valid directory OR file
-	if _path_check.dir_exists(path)\
-	or _path_check.file_exists(path):
-		_is_valid = true
-	# error logging
-	if not _is_valid\
-	and not override_logging:
-		GlobalDebug.log_error(SCRIPT_NAME, "_validate_path",
-				"file or directory [{p}] not found".format({"p": path}))
-	return _is_valid
-	
-	
