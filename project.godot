@@ -9,11 +9,6 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Node",
-"class": "CustomObject",
-"language": "GDScript",
-"path": "res://_dev/_tempdelme/class_custom_object.gd"
-}, {
 "base": "Resource",
 "class": "GameDataContainer",
 "language": "GDScript",
@@ -25,7 +20,6 @@ _global_script_classes=[ {
 "path": "res://src/class/class_global.gd"
 } ]
 _global_script_class_icons={
-"CustomObject": "",
 "GameDataContainer": "",
 "GameGlobal": ""
 }
