@@ -182,17 +182,22 @@ func get_dirpath_user() -> String:
 #	(always pass directories with a trailing forward slash /)
 ##2, req_file_prefix, file must begin with this string
 ##3, req_file_suffix, file must end with this string (including extension)
-##4, excl_substring, if found in the file name, this file is ignored
+##4, excl_substrings, array of strings which the file name is checked against
+#	and the file name must **not** include
+##5, incl_substrings, array of strings which the file name is checked against
+#	and the file name must include
 #	(leave params as default (i.e. empty strings or "") to ignore behaviour)
 func get_file_paths(
 		directory_path: String,
 		req_file_prefix: String = "",
 		req_file_suffix: String = "",
-		excl_substring: String = "") -> Array:
+		excl_substrings: PoolStringArray = [],
+		incl_substrings: PoolStringArray = []) -> PoolStringArray:
 	# validate path
 	var dir_access := Directory.new()
 	var file_name := ""
-	var return_file_paths := []
+	var return_file_paths: PoolStringArray = []
+	
 	# find the directory, loop through the directory
 	if dir_access.open(directory_path) == OK:
 		# skip if directory couldn't be opened
@@ -232,17 +237,35 @@ func get_file_paths(
 									"f": file_name
 								}))
 				# validation block 3
-				if excl_substring != "":
-					if excl_substring in file_name:
-						add_found_file = false
-						# successful validation to exempt a file
-						#// need a minor logging method added
-						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
-								"get_file_paths",
-								"bad substring {s} in file name {f}".format({
-									"s": excl_substring,
-									"f": file_name
-								}))
+				if not excl_substrings.empty():
+					for force_exclude in excl_substrings:
+						if typeof(force_exclude) == TYPE_STRING:
+							if force_exclude in file_name:
+								add_found_file = false
+								# successful validation to exempt a file
+								#// need a minor logging method added
+								GlobalDebug.log_success(verbose_logging,
+										SCRIPT_NAME,
+										"get_file_paths",
+										"bad str {s} in file name {f}".format({
+											"s": force_exclude,
+											"f": file_name
+										}))
+				# validation block 4
+				if not incl_substrings.empty():
+					for force_include in incl_substrings:
+						if typeof(force_include) == TYPE_STRING:
+							if not force_include in file_name:
+								add_found_file = false
+								# successful validation to exempt a file
+								#// need a minor logging method added
+								GlobalDebug.log_success(verbose_logging,
+										SCRIPT_NAME,
+										"get_file_paths",
+										"no str {s} in file name {f}".format({
+											"s": force_include,
+											"f": file_name
+										}))
 				# validation checks passed successfully
 				if add_found_file:
 					return_file_paths.append(directory_path+file_name)
