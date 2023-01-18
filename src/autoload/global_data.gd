@@ -339,6 +339,47 @@ func load_resource(
 	return new_resource
 
 
+# this method extends the load resource method to get **every** resource
+# within a given directory. It pulls files using the get_file_paths method.
+# this method can be passed any argument from get_file_paths or load_resource
+# [method params as follows]
+##1, directory_path, is the path to the directory containing resources that
+# you wish the method to return
+##2, req_file_prefix, see the method 'get_file_paths'
+##3, req_file_suffix, see the method 'get_file_paths'
+##4, excl_substrings, see the method 'get_file_paths'
+##5, incl_substrings, see the method 'get_file_paths'
+##6, type_cast, see the method 'load_resource'
+func load_resources_in_directory(
+		directory_path: String,
+		req_file_prefix: String = "",
+		req_file_suffix: String = "",
+		excl_substrings: PoolStringArray = [],
+		incl_substrings: PoolStringArray = [],
+		type_cast = null) -> Array:
+	var returned_resources := []
+	var paths_to_resources: PoolStringArray = []
+	# get paths for files in directory
+	paths_to_resources = get_file_paths(
+		directory_path,
+		req_file_prefix,
+		req_file_suffix,
+		excl_substrings,
+		incl_substrings
+	)
+	# if no paths found, return nothing
+	if paths_to_resources.empty():
+		return returned_resources
+	# for each path check if resource then add it to the return group if it is
+	for file_path in paths_to_resources:
+		var get_resource
+		get_resource = load_resource(file_path, type_cast)
+		if get_resource != null:
+			if get_resource is Resource:
+				returned_resources.append(get_resource)
+	return returned_resources
+
+
 # method to save any resource or resource-extended custom class to disk.
 # call this method with 'if save_resource(*args) == OK' to validate
 #
