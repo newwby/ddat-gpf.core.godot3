@@ -92,15 +92,16 @@ const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS := false
 # game performance. Try to identify excessive calls instead of relying on this.
 const OVERRIDE_DISABLE_ALL_LOGGING := false
 
-#// DEPRECATED as now unused
-# has the dev debug (info) overlay connected with the globalDebug singleton
-#var is_dev_debug_overlay_connected := false
-# has the dev action menu connected with the globalDebug singleton
-#var is_dev_action_menu_connected := false
-# reference to the dev debug (info) overlay, once connection has been made
-#var dev_debug_overlay_node: DevDebugOverlay
-# reference to the dev action menu, once connection has been made
-#var dev_action_menu_node: DevActionMenu
+# DEPRECATED
+const UNIT_TEST_ENTRY_LOG_TO_CONSOLE = false
+
+# as with the constant OVERRIDE_DISABLE_ALL_LOGGING, this variable denies
+# all logging calls. It is set and unset as part of the log_test method.
+# Many unit tests will purposefully 
+var _is_test_running = false
+
+# DEPRECATED
+var unit_test_log = []
 
 ###############################################################################
 
@@ -171,12 +172,13 @@ func _ready():
 # in release builds only these arguments will be printed to console/log.
 # in debug builds, depending on developer settings, stack traces, error
 # warnings, and project pausing can be forced through this method.
-static func log_error(\
+func log_error(\
 		calling_script: String = "",\
 		calling_method: String = "",\
 		error_string: String = "") -> void:
 	# if suspending logging, stop immediately
-	if OVERRIDE_DISABLE_ALL_LOGGING:
+	if OVERRIDE_DISABLE_ALL_LOGGING\
+	or _is_test_running:
 		return
 	
 	# build error string through this method then print at end of method
@@ -244,13 +246,14 @@ static func log_error(\
 # LogSuccess is not intended as catch-all solution, it is to be used in
 # conjunction with testing, debug builds, and debugging tools such as
 # the editor debugger and inspector.
-static func log_success(
+func log_success(
 		verbose_logging_enabled: bool,\
 		calling_script: String,\
 		calling_method: String,\
 		success_string: String = "") -> void:
 	# if suspending logging, stop immediately
-	if OVERRIDE_DISABLE_ALL_LOGGING:
+	if OVERRIDE_DISABLE_ALL_LOGGING\
+	or _is_test_running:
 		return
 	
 	# log success is a debugging tool that should always be passed a bool
@@ -276,6 +279,53 @@ static func log_success(
 	print(print_string)
 
 
+# decorator for running a test function with globalDebug logging disabled
+# returns a comparison of expected outcome and the bool result of the unit test
+##1, 'unit_test', should be a function that returns a bool
+##2, 'expected_outcome', is the bool you expect the func in param1 to return
+func log_test(
+		unit_test: FuncRef,
+		expected_outcome: bool):
+	# for checking whether the funcRef is set up correctly
+	# and whether it returns a bool
+	var is_test_valid: bool
+	var test_outcome: bool
+	
+	# first, check the funcRef validity
+	is_test_valid = unit_test.is_valid()
+	
+	# if can run the test
+	if is_test_valid:
+		# disable logging then run the function
+		self._is_test_running = true
+		test_outcome = unit_test.call_func()
+		self._is_test_running = false
+		# check return argument was valid
+		if typeof(test_outcome) == TYPE_BOOL:
+			is_test_valid = true
+		else:
+			is_test_valid = false
+	
+	# logging statement for test
+	if is_test_valid:
+		var compare_outcomes = (expected_outcome == test_outcome)
+		var log_string =\
+				"SUCCESS - test outcome matches expected outcome."\
+				if compare_outcomes else\
+				"FAILURE - test outcome does not match expected outcome."
+		
+		print("DBGMGR.log_test.{x} [{r}]".format({
+			"x": str(unit_test.function),
+			"r": log_string
+		}))
+		return compare_outcomes
+	
+	# if either validation test failed
+	if not is_test_valid:
+		GlobalDebug.log_error(SCRIPT_NAME, "log_test",
+				"invalid test, is not valid funcref or does not return bool")
+
+
 # update_debug_info is a method that interfaces with the debug_info_overlay
 # child of GlobalDebug (automatically instantiated at runtime)
 # arg1 is the key for the debug item.
@@ -292,140 +342,6 @@ func update_debug_overlay(debug_item_key: String, debug_item_value):
 	emit_signal("update_debug_overlay_item",
 			debug_item_key,
 			debug_item_value)
-	
-	#// DEPRECATED as globalDebug no longer keeps record of devDebugOverlay
-	
-#	else:
-#		# if the canvas wasn't found, then the overlay can't do anything
-#		# we could leave this as an unanswered signal, but then we wouldn't
-#		# know there was an instance of updates being made before the canvas
-#		# was ready, or in instances of the canvas failing to ready.
-#		log_error(SCRIPT_NAME, "update_debug_info",
-#				"dev_debug_overlay not found with "+\
-#				"[{key}]: {value}".format(
-#				{"key": debug_item_key,
-#				"value": debug_item_value})
-#				)
-
-
-##############################################################################
-
-func legacy_methods_below():
-	pass
-
-
-###############################################################################
-
-const UNIT_TEST_ENTRY_LOG_TO_CONSOLE = false
-
-var is_disk_log_called_this_runtime = false
-
-# switchable vars to control how error logging functions
-# global scope so can be changed before calling groups that will throw errors
-var debug_build_log_to_console = false #false #tempdisable
-var debug_build_log_to_disk = false
-# should always be false so removed
-#var release_build_log_to_console = false
-var release_build_log_to_disk = false
-
-var debug_build_log_to_godot_file_logger = true
-var release_build_log_to_godot_file_logger = true
-
-var unit_test_log = []
-
-
-###############################################################################
-
-
-## override of error logging for build 0.2.6
-#func log_error(error_string: String = ""):
-#	if not verbose_logging:
-#		print("debug manager raised error, enable verbose logging or run in debug mode")
-#	pass
-
-# expansion of error logging capabilities
-func log_error_ext(error_string: String = ""):
-	if verbose_logging:
-		print("global_debug calling log_error()")
-	var full_error_string = "| DBGMGR ERROR! |"
-	var full_stack_trace = get_stack()
-	# TODO IDV2 temp removal of DebugBuild stack trace decorator
-#	var error_call = full_stack_trace
-#	var error_func = "[stack func blank]"
-#	var error_node = "[stack node blank]"
-#	var error_line = "[stack line blank]"
-	# deprecated due to startup crash
-#	if full_stack_trace is Array:
-#		error_call = full_stack_trace[1]
-#		error_func = error_call["function"]
-#		error_node = error_call["source"]
-#		error_line = error_call["line"]
-#	full_error_string += (" ["+str(error_node))+"]"
-#	full_error_string += (" ["+str(error_func)+" line "+str(error_line))+"]"
-	if error_string != "":
-		full_error_string += (" |\n"+"| ERROR CODE: | "+error_string)
-	if PRINT_FULL_STACK_TRACE:
-		full_error_string += (" |\n"+"| FULL STACK TRACE: | "+str(full_stack_trace))
-#	print("temp > ", get_stack())
-#	print("temp[0] > ", get_stack()[0])
-#	print("temp[1] > ", get_stack()[1])
-	_log_error_handler(full_error_string)
-
-
-# original error logging
-func _log_error_handler(error_string):
-	if verbose_logging:
-		print("global_debug calling _log_error_handler()")
-	if OS.is_debug_build() and debug_build_log_to_console:
-		_log_error_to_console(error_string)
-
-	if OS.is_debug_build() and debug_build_log_to_disk:
-		_log_error_to_disk(error_string)
-	elif not OS.is_debug_build() and release_build_log_to_disk:
-		_log_error_to_disk(error_string)
-
-	if OS.is_debug_build() and debug_build_log_to_godot_file_logger:
-		print_debug(error_string)
-	elif not OS.is_debug_build() and release_build_log_to_godot_file_logger:
-		print_debug(error_string)
-
-
-func _log_error_to_console(error_string):
-	if verbose_logging:
-		print("global_debug calling _log_error_to_console()")
-	print(error_string)
-
-
-# NOTE: this has been superceded by godot's internal logging system,
-# which I wasn't aware of when I wrote this
-func _log_error_to_disk(error_string):
-	if verbose_logging:
-		print("global_debug calling _log_error_to_disk()")
-
-	# log cycling
-#	var current_file_content
-	if not is_disk_log_called_this_runtime:
-		# removed due to lack of globalRef
-		
-			# move log file 2 to file 3, if file 2 exists
-#		if GlobalData.validate_file_path(GlobalRef.ERROR_LOG_USER_2):
-#			current_file_content = GlobalData.open_and_return_file_as_string(GlobalRef.ERROR_LOG_USER_2)
-#			GlobalData.open_and_overwrite_file_with_string(GlobalRef.ERROR_LOG_USER_3, current_file_content, true)
-
-			# move log file 1 to file 2, if file 1 exists
-#		if GlobalData.validate_file_path(GlobalRef.ERROR_LOG_USER_1):
-#			current_file_content = GlobalData.open_and_return_file_as_string(GlobalRef.ERROR_LOG_USER_1)
-#			GlobalData.open_and_overwrite_file_with_string(GlobalRef.ERROR_LOG_USER_2, current_file_content, true)
-
-		is_disk_log_called_this_runtime = true
-	
-	# removed due to lack of globalRef
-#	GlobalData.open_and_overwrite_file_with_string(GlobalRef.ERROR_LOG_USER_1, error_string, true)
-
-
-	# on all run write to #1 disk
-	error_string = error_string
-
 
 ###############################################################################
 
