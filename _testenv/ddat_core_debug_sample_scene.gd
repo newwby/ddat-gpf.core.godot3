@@ -13,7 +13,7 @@ extends Node2D
 ##############################################################################
 
 # for passing to error logging
-const SCRIPT_NAME := "script_name"
+const SCRIPT_NAME := "ddat-gpf.core debug manager sample scene"
 # for developer use, enable if making changes
 const VERBOSE_LOGGING := true
 
@@ -45,18 +45,17 @@ func _ready():
 	# initial scene duration push to overlay
 	update_scene_duration_string()
 	
-	if 2 >= 3:
-		GlobalDebug.log_success(VERBOSE_LOGGING, SCRIPT_NAME,
-				"_ready", "math.broken")
-	else:
-		GlobalDebug.log_error(SCRIPT_NAME,
-				"_ready", "2 is not greater or equal to 3")
+#	if 2 >= 3:
+#		GlobalDebug.log_success(VERBOSE_LOGGING, SCRIPT_NAME,
+#				"_ready", "math.broken")
+#	else:
+#		GlobalDebug.log_error(SCRIPT_NAME,
+#				"_ready", "2 is not greater or equal to 3")
 	
+	GlobalDebug.log_test(funcref(self, "unit_test_math_is_valid"), true)
+	GlobalDebug.log_test(funcref(self, "unit_test_false_is_false"), false)
+	GlobalDebug.log_test(funcref(self, "unit_test_false_is_false"), true)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(_delta):
-#	pass
 
 func _input(event):
 	var increment := 1
@@ -112,6 +111,25 @@ func update_scene_duration_string():
 		"Scene Duration",
 		duration_string
 	)
+
+
+# sample unit test
+func unit_test_math_is_valid() -> bool:
+	if 2 < 3:
+		return true
+	else:
+		return false
+
+
+# sample unit test
+func unit_test_false_is_false() -> bool:
+	var false_statement = false
+	# added log call to test whether the call is blocked by log_test
+	GlobalDebug.log_error(SCRIPT_NAME, "unit_test_false_is_false",
+			"this error should never be logged if log_test is blocking "+\
+			"calls to log_error and log_success properly.")
+	return false_statement
+
 
 
 func _on_SceneDuration_timeout():
