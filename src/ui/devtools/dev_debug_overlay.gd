@@ -30,6 +30,17 @@ extends Control
 #// add developer support for setting margin
 #// add support for text colour
 
+# ORIGINAL NOTES
+# [debug stat tracking panel feature list]
+# - dev uses signal to update a dict with name (key) and value
+# - info panel updates automatically whenever the dict data changes
+# - info panel alignment and instantiation (under canvas layer) done as part of global debug
+#	- info panel orders itself alphabetically
+#	- info panel inits canvas layer scaled to base project resolution but dev can override
+# - option(oos) category organisation; default blank enum dev can customise
+#	- info panel gets subheadings & dividers, empty category == hide
+# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
+
 # POTENTIAL BUGS
 #// what happens if multiple sources try to update a new key? will more than
 # one debugItemContainer be created? what happens to the reference of the last?
@@ -123,7 +134,7 @@ func _ready():
 func create_debug_item_container(
 			debug_item_key: String,
 			debug_item_new_value: String) -> HBoxContainer:
-	var new_debug_item_container_node
+	var new_debug_item_container_node: HBoxContainer
 	# check valid before duplicating
 	if debug_item_container_default_node == null:
 		# this should not happen
@@ -178,7 +189,7 @@ func create_debug_item_container(
 			GlobalDebug.log_error(SCRIPT_NAME, "_create_debug_item_container",
 				"debug_info_column_node.not_found")
 	
-	return debug_item_container_default_node
+	return new_debug_item_container_node
 
 
 func update_debug_item_key_label(
