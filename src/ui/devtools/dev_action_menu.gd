@@ -18,8 +18,17 @@ extends Control
 
 # DEPENDENCY: GlobalDebug
 
-#04b. # docstring
-#
+# NOTES
+
+# [debug action menu feature list]
+# - disclaimer at top of menu informing devs to add buttons if none are present
+# - command line input for written dev commands
+# - keyboard/input typing solution as part of ddat_core
+# - dict to add a new method, key is button text and value is method name in file
+# - after dev updates dict they add a method to be called when button is pressed
+# - buttons without found methods aren't shown when panel is called
+# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
+
 ##############################################################################
 #
 # Declare member variables here. Examples:

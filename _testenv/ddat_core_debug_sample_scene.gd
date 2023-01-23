@@ -9,6 +9,12 @@ extends Node2D
 # [ ] success logging
 # [X] the developer debugging overlay
 # [ ] the developer action menu
+
+#//TODO for globalDebug sample scene
+# line with and without verbose_logging arguments (comment explaining why again, refernce notes on log_success/how it works),
+# behaviour of debugInfoOverlay via tracking data like player input, time since scene started
+# behaviour/implementation of both devMode action buttons and devMode command line,
+# scene text background showing what key to press to call debugOverlay or devModeMenu (default to on/off)
 #
 ##############################################################################
 
