@@ -12,43 +12,9 @@ extends GameGlobal
 # DEPENDENCIES
 # Set as an autoload *BEFORE* DDAT_Core.GlobalData
 # Set as your first autoload, or as early as you can.
-#
 
 # TODO
-
 #// add variation of logError that is just for minor errors (never pushes)
-
-#// instantiate and ready/setup/validate debug info overlay on startup
-#// write tests for # log_error() # log_success() and update_debug_info()
-#// update method returns for -> void and other in globalDebug
-#// update method returns for -> void and other in infoOverlay also
-
-# [globalDebug sample scene]
-#include log_error prints, log_success prints,
-# verbose_logging arguments (comment explaining why again, ref log_success),
-# behaviour of debugInfoOverlay via tracking data like player input, time since scene started
-# behaviour/implementation devMode action buttons and devMode command line,
-# scene text background showing what key to press to call debugOverlay or devModeMenu
-
-# [debug stat tracking panel feature list]
-# - dev uses signal to update a dict with name (key) and value
-# - info panel updates automatically whenever the dict data changes
-# - info panel alignment and instantiation (under canvas layer) done as part of global debug
-#	- info panel orders itself alphabetically
-#	- info panel inits canvas layer scaled to base project resolution but dev can override
-# - option(oos) category organisation; default blank enum dev can customise
-#	- info panel gets subheadings & dividers, empty category == hide
-# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
-#
-# [debug action menu feature list]
-# - disclaimer at top of menu informing devs to add buttons if none are present
-# - command line input for written dev commands
-# - keyboard/input typing solution as part of ddat_core
-# - dict to add a new method, key is button text and value is method name in file
-# - after dev updates dict they add a method to be called when button is pressed
-# - buttons without found methods aren't shown when panel is called
-# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
-#
 
 ##############################################################################
 
@@ -154,6 +120,7 @@ func _ready():
 
 
 ###############################################################################
+
 
 # [Usage]
 # use GlobalDebug.log_error() in methods at points where you do not expect
@@ -329,7 +296,7 @@ func log_test(
 # arg1 shoulod always be a string key
 # arg2 can be any type, but it will be converted to string before it is set
 # to the text for the value label in the relevant debug info item container
-func update_debug_overlay(debug_item_key: String, debug_item_value):
+func update_debug_overlay(debug_item_key: String, debug_item_value) -> void:
 	# everything works, pass on the message to the canvas info overlay
 	# validation step added due to strange method-not-declared bug that
 	# ocassionally occurs
