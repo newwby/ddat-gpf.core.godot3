@@ -88,15 +88,16 @@ func _ready():
 	
 	# set initial size based on current viewport, then prepare for
 	# any future occurence of the viewport size changing and moving elements
-	_on_viewport_resized_resize_info_overlay()
-	if get_viewport().connect("size_changed",
-			self, "_on_viewport_resized_resize_info_overlay") != OK:
-		# report error on failure to get signal
-		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
-		setup_success_state = false
-	else:
-		GlobalDebug.log_success(VERBOSE_LOGGING,\
-				SCRIPT_NAME, "_ready", "view.connect")
+	#// deprecating, somewhat unnecessary due to godot controls auto-sizing
+#	_on_viewport_resized_resize_info_overlay()
+#	if get_viewport().connect("size_changed",
+#			self, "_on_viewport_resized_resize_info_overlay") != OK:
+#		# report error on failure to get signal
+#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
+#		setup_success_state = false
+#	else:
+#		GlobalDebug.log_success(VERBOSE_LOGGING,\
+#				SCRIPT_NAME, "_ready", "view.connect")
 	
 	# configure the default/template item container
 	# passed arg is default container (is child, should be readied) node ref
@@ -292,23 +293,24 @@ func _on_update_debug_overlay_item_notify_container(\
 			pass
 
 
+#// deprecating, see note in _ready
 # call on ready and whenever viewport size changes
-func _on_viewport_resized_resize_info_overlay():
-	var new_viewport_size = get_viewport().size
-	# set default sizes based on the viweport
-	debug_edge_margin_node.rect_size = new_viewport_size
-	
-	if false:
-		# set minimum bounds for item container value labels
-		var item_container_value_label_nodes =\
-				get_tree().get_nodes_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE)
-		if not item_container_value_label_nodes.empty():
-			for value_label_node in item_container_value_label_nodes:
-				if value_label_node is Label:
-					# value labels for debug item containers have a minimum size
-					# set to prevent them from jumping all over the place as the
-					# value updates - by default this value is set to a small
-					# proportion of the viewport, and changed if viewport resizes
-					value_label_node.rect_min_size =\
-							new_viewport_size*DEBUG_ITEM_VALUE_MIN_SIZE_FRACTIONAL
+#func _on_viewport_resized_resize_info_overlay():
+#	var new_viewport_size = get_viewport().size
+#	# set default sizes based on the viweport
+#	debug_edge_margin_node.rect_size = new_viewport_size
+#
+#	if false:
+#		# set minimum bounds for item container value labels
+#		var item_container_value_label_nodes =\
+#				get_tree().get_nodes_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE)
+#		if not item_container_value_label_nodes.empty():
+#			for value_label_node in item_container_value_label_nodes:
+#				if value_label_node is Label:
+#					# value labels for debug item containers have a minimum size
+#					# set to prevent them from jumping all over the place as the
+#					# value updates - by default this value is set to a small
+#					# proportion of the viewport, and changed if viewport resizes
+#					value_label_node.rect_min_size =\
+#							new_viewport_size*DEBUG_ITEM_VALUE_MIN_SIZE_FRACTIONAL
 
