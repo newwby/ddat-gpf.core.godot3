@@ -21,7 +21,7 @@ custom_constants/margin_left = 25
 custom_constants/margin_bottom = 50
 
 [node name="InfoColumn" type="VBoxContainer" parent="Margin"]
-margin_left = 1895.0
+margin_left = 1351.0
 margin_top = 50.0
 margin_right = 1895.0
 margin_bottom = 1030.0
@@ -30,7 +30,6 @@ size_flags_horizontal = 10
 size_flags_vertical = 3
 
 [node name="ItemContainer" type="HBoxContainer" parent="Margin/InfoColumn"]
-visible = false
 margin_right = 544.0
 margin_bottom = 31.0
 mouse_filter = 2

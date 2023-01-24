@@ -12,43 +12,9 @@ extends GameGlobal
 # DEPENDENCIES
 # Set as an autoload *BEFORE* DDAT_Core.GlobalData
 # Set as your first autoload, or as early as you can.
-#
 
 # TODO
-
 #// add variation of logError that is just for minor errors (never pushes)
-
-#// instantiate and ready/setup/validate debug info overlay on startup
-#// write tests for # log_error() # log_success() and update_debug_info()
-#// update method returns for -> void and other in globalDebug
-#// update method returns for -> void and other in infoOverlay also
-
-# [globalDebug sample scene]
-#include log_error prints, log_success prints,
-# verbose_logging arguments (comment explaining why again, ref log_success),
-# behaviour of debugInfoOverlay via tracking data like player input, time since scene started
-# behaviour/implementation devMode action buttons and devMode command line,
-# scene text background showing what key to press to call debugOverlay or devModeMenu
-
-# [debug stat tracking panel feature list]
-# - dev uses signal to update a dict with name (key) and value
-# - info panel updates automatically whenever the dict data changes
-# - info panel alignment and instantiation (under canvas layer) done as part of global debug
-#	- info panel orders itself alphabetically
-#	- info panel inits canvas layer scaled to base project resolution but dev can override
-# - option(oos) category organisation; default blank enum dev can customise
-#	- info panel gets subheadings & dividers, empty category == hide
-# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
-#
-# [debug action menu feature list]
-# - disclaimer at top of menu informing devs to add buttons if none are present
-# - command line input for written dev commands
-# - keyboard/input typing solution as part of ddat_core
-# - dict to add a new method, key is button text and value is method name in file
-# - after dev updates dict they add a method to be called when button is pressed
-# - buttons without found methods aren't shown when panel is called
-# - globalDebug adds action under F2 (default0 for showing debug action panel (auto-behaviour, can be overriden)
-#
 
 ##############################################################################
 
@@ -92,16 +58,10 @@ const FORCE_SUCCESS_LOGGING_IN_RELEASE_BUILDS := false
 # game performance. Try to identify excessive calls instead of relying on this.
 const OVERRIDE_DISABLE_ALL_LOGGING := false
 
-# DEPRECATED
-const UNIT_TEST_ENTRY_LOG_TO_CONSOLE = false
-
 # as with the constant OVERRIDE_DISABLE_ALL_LOGGING, this variable denies
 # all logging calls. It is set and unset as part of the log_test method.
 # Many unit tests will purposefully 
 var _is_test_running = false
-
-# DEPRECATED
-var unit_test_log = []
 
 ###############################################################################
 
@@ -160,6 +120,7 @@ func _ready():
 
 
 ###############################################################################
+
 
 # [Usage]
 # use GlobalDebug.log_error() in methods at points where you do not expect
@@ -335,157 +296,11 @@ func log_test(
 # arg1 shoulod always be a string key
 # arg2 can be any type, but it will be converted to string before it is set
 # to the text for the value label in the relevant debug info item container
-func update_debug_overlay(debug_item_key: String, debug_item_value):
+func update_debug_overlay(debug_item_key: String, debug_item_value) -> void:
 	# everything works, pass on the message to the canvas info overlay
 	# validation step added due to strange method-not-declared bug that
 	# ocassionally occurs
 	emit_signal("update_debug_overlay_item",
 			debug_item_key,
 			debug_item_value)
-
-###############################################################################
-
-
-# deprecating
-func log_unit_test(test_outcome, origin_script, test_purpose):
-	if verbose_logging:
-		print("global_debug calling log_unit_test()")
-	unit_test_log.append(test_outcome)
-	if UNIT_TEST_ENTRY_LOG_TO_CONSOLE:
-		print("outcome: "+str(test_outcome).to_upper()+" | from: "+str(origin_script)+" | purpose: "+str(test_purpose))
-
-# deprecating
-func execute_unit_test(optional_identifier_string = null):
-	if verbose_logging:
-		print("global_debug calling execute_unit_test()")
-	var print_string = ""
-
-	for test in unit_test_log:
-		if test == false:
-			print_string = "||| UNIT TEST FAILED |||"
-			if typeof(optional_identifier_string) == TYPE_STRING:
-				print_string = print_string+" | "+optional_identifier_string+" |"
-			unit_test_log.clear()
-			print(print_string)
-			return false
-
-	print_string = "||| UNIT TEST PASSED |||"
-	if typeof(optional_identifier_string) == TYPE_STRING:
-		print_string = print_string+" | "+optional_identifier_string+" |"
-	unit_test_log.clear()
-	print(print_string)
-	return true
-
-
-########
-
-
-# public method to test whether a method's actual return value matches the
-# expected return value, use for testing simple methods with a return value
-# arg 1: self (usually)
-# arg 2: an array of values to be tested, at least 2, expected to be equal
-func unit_test_comparison_of_values(\
-caller: Object,\
-comparator_values = []):
-	if verbose_logging:
-		print("global_debug calling unit_test_comparison_of_values()")
-	# check if is a valid test
-	if not comparator_values.size() <= 1:
-		var result = true
-		var last_value = null
-		var first_error_value = null
-		for value in comparator_values:
-			if last_value != null:
-				result = (result)==(value==last_value)
-				if result == false and first_error_value == null:
-					first_error_value = value
-			last_value = value
-
-		# output first line
-		var first_line_log_string = "###"+" UT Comparison of Values"
-		if result == null:
-			print(first_line_log_string + " | no result")
-		elif result == true:
-			print(first_line_log_string +\
-					" | result OUTPUT MATCHES")
-		elif result == false:
-			print(first_line_log_string +\
-					" | result OUTPUT DOES NOT MATCH")
-
-		# output second line
-		if caller.get("name"):
-			print("on object ",	str(caller), " (", str(caller.name), ")")
-		else:
-			print("on object ", str(caller))
-
-		# output third line
-		if comparator_values != null:
-			print(" | Compared Values: ", comparator_values)
-		#
-		# output fourth line
-		if first_error_value != null:
-			print(" | first non matching value: ", first_error_value)
-
-	# fail state no method / called incorrectly, log error
-	else:
-		log_error("unit_test_comparison_of_values attempted with on "\
-				+str(caller)+" but not enough values were passed. ")
-
-
-
-# public method to test whether a method's actual return value matches the
-# expected return value, use for testing simple methods with a return value
-# arg 1: self (usually)
-# arg 2: method name to be tested
-# arg 3: expected value if any
-# arg 4: values to be passed within an array
-func unit_test_expected_output_comparison(\
-caller: Object,\
-method_name: String,\
-method_values: Array = [],\
-expected_return_value = null):
-	if verbose_logging:
-		print("global_debug calling unit_test_expected_output_comparison()")
-	# check if is a valid test
-	if caller.has_method(method_name):
-		var actual_return_value = null
-		var result = null
-		actual_return_value = caller.callv(method_name, method_values)
-		# get if output of the method matches expected output
-		if expected_return_value != null:
-			result = (expected_return_value == actual_return_value)
-
-		# output first line
-		var first_line_log_string = "###"+" UT Expected Output Comparison"
-		if result == null:
-			print(first_line_log_string + " | no result")
-		elif result == true:
-			print(first_line_log_string +\
-					" | result OUTPUT MATCHES")
-		elif result == false:
-			print(first_line_log_string +\
-					" | result OUTPUT DOES NOT MATCH EXPECTED")
-
-		# output second line
-		if caller.get("name"):
-			print("on method ", method_name, " of object ",\
-					str(caller), " (", str(caller.name), ")")
-		else:
-			print("on method ", method_name, " of object ", str(caller))
-		# output third line
-		if expected_return_value != null:
-			print(" | Expected Result: ", expected_return_value)
-		# output third line
-		if actual_return_value != null:
-			print(" | Actual Result: ", actual_return_value)
-		else:
-			print(" | No Output")
-		# step output log
-		print("")
-
-	# fail state no method / called incorrectly, log error
-	else:
-		log_error("unit_test_expected_output_comparison attempted with "\
-				+method_name+" on "\
-				+str(caller)+" but method was not found ")
 
