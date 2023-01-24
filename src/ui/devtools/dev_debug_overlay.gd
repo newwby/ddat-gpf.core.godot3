@@ -19,10 +19,9 @@ extends Control
 
 # TODO
 #// finish test scene/project
-#// add an open source font to ddat core, preferably a KenneyNL font
+
 #// add Public Function to update debug values
-#// hide default item container on init
-#// default show on debugBuild
+
 #// add button to show/hide on press
 #// add secondary confirmation on release builds, or toggle to disable (rw style)
 #// add support for debug values that hide over time after no updates
@@ -123,6 +122,12 @@ func _ready():
 	else:
 		GlobalDebug.log_success(VERBOSE_LOGGING,\
 				SCRIPT_NAME, "_ready", "itemcon.setup")
+	
+	# automatically show on debug builds
+	self.visible = (OS.is_debug_build())
+	# if default item container was left visible in testing, always hide it
+	if debug_item_container_default_node != null:
+		debug_item_container_default_node.visible = false
 
 
 ##############################################################################
