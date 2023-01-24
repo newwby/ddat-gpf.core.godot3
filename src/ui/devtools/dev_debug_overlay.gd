@@ -51,6 +51,10 @@ const SCRIPT_NAME := "dev_debug_overlay"
 # for developer use, enable if making changes
 const VERBOSE_LOGGING := true
 
+#//TODO - intiialise F1 key as a new action for show/hide debug overlay
+# change this string to the project map action you wish to toggle the overlay
+const TOGGLE_OVERLAY_ACTION := "ui_home"
+
 # for standardising the an item container's key or value label name
 # useful for validating and/or fetching the correct node
 const NODE_NAME_DEBUG_ITEM_LABEL_KEY := "Key"
@@ -128,6 +132,15 @@ func _ready():
 	# if default item container was left visible in testing, always hide it
 	if debug_item_container_default_node != null:
 		debug_item_container_default_node.visible = false
+
+
+##############################################################################
+
+
+# on recieving input to toggle the overlay, flip whether to show/hide it
+func _input(event):
+	if event.is_action_released(TOGGLE_OVERLAY_ACTION):
+		self.visible = !self.visible
 
 
 ##############################################################################
