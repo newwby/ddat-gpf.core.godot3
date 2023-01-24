@@ -18,27 +18,20 @@ extends Control
 # container and add its value.
 
 # TODO
-#// finish test scene/project
-
-#// add Public Function to update debug values
-
-#// add button to show/hide on press
-#// add secondary confirmation on release builds, or toggle to disable (rw style)
 #// add support for debug values that hide over time after no updates
 #// add support for renaming debug keys
-#// add developer support for setting margin
+#// add developer support for custom adjusting/setting margin
 #// add support for text colour
+#// add support for multiple info columns
 
-# ORIGINAL NOTES
-# [debug stat tracking panel feature list]
-# - dev uses signal to update a dict with name (key) and value
-# - info panel updates automatically whenever the dict data changes
-# - info panel alignment and instantiation (under canvas layer) done as part of global debug
-#	- info panel orders itself alphabetically
-#	- info panel inits canvas layer scaled to base project resolution but dev can override
-# - option(oos) category organisation; default blank enum dev can customise
-#	- info panel gets subheadings & dividers, empty category == hide
-# - globalDebug adds action under F1 (default) for showing panel (this auto-behaviour can be overriden)
+#// add support for autosorting options, e.g. alphabetically by key
+#// add Public Function to update debug values
+#// add secondary toggle confirm on release builds
+#// add perma-disable (via globalDebug) option
+
+#// add support for info column categories (empty category == hide)
+#	- option(oos) category organisation; default blank enum dev can customise
+#	- subheadings and dividers
 
 # POTENTIAL BUGS
 #// what happens if multiple sources try to update a new key? will more than
