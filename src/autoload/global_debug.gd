@@ -96,30 +96,48 @@ func _ready():
 
 ###############################################################################
 
-#// DEPRECATED since devDebugOverlay can just connect to globalDebug signals
 
-## this method is called by the dev debug overlay to establish a connection
-## arg is the node to set as the dev debug overlay for globalDebug
-#func establish_dev_debug_overlay(caller: DevDebugOverlay):
-#	# if this has already been run successfully, ignore
-#	if is_dev_debug_overlay_connected:
-#		return OK
-#
-#
-#	# if the dev debug overlay was already set once, ignore
-#	# do not attempt to set more than one node as the dev debug overlay
-#	if dev_debug_overlay_node != null:
-#		return ERR_ALREADY_EXISTS
-#
-#	# if this is the first caller then set as the dev debug overlay
-#	dev_debug_overlay_node = caller
-#	# establish connection of associated method
-#	connect("update_debug_info_overlay",
-#			dev_debug_overlay_node, "_update_debug_item_container")
-#	is_dev_debug_overlay_connected = true
+# method to establish a new dev command (and, potentially, a new action button)
+# 1) creates a signal of 'dev_'+signal_id_suffix on GlobalDebug
+# 2) once signal exists (or if did already) connects the new signal to caller
+# 3) creates devCommand struct in devActionMenu - if typed/pressed calls signal
+# 4) connects tree_exited on caller to remove dev command method
+# [Usage]
+# Call add_dev_command from on_ready() on any node with a method you wish
+# to add as a dev_command
+# [method params as follows]
+##1, signal_id_suffix, is
+##2, caller, is
+##3, called_method, is
+##4, add_action_button, controls
+func add_dev_command(
+	signal_id_suffix: String,
+	caller: Node,
+	called_method: String,
+	add_action_button: bool = true
+):
+	pass
+	# emit signal to devActionMenu (which should have connected to the signal
+	# in its onready) to create a devCommand struct
 
 
-###############################################################################
+# method to prune an unnecessary dev command
+# 1) removes signal connection
+# 2) looks for and removes signal connection to prune (step 4 above)
+# 3) removes relevant devCommand struct from devActionMenu
+# 4) removes relevant signal from globalDebug
+# [Usage]
+# Automatically called when a node linked to a dev command
+# [method params as follows]
+##1, signal_id_suffix, is
+##2, caller, is
+##3, called_method, is
+func delete_dev_command(
+	signal_id_suffix: String,
+	caller: Node,
+	called_method: String
+):
+	pass
 
 
 # [Usage]

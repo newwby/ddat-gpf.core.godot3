@@ -24,10 +24,6 @@ extends Control
 # set up font resource for the buttons
 # set up action button container item/button margins
 
-#//TODO GLOBAL_DEBUG
-# method: add_dev_command
-# method: remove_dev_command
-
 #//TODO DEV_DEBUG_OVERLAY
 # also add folder for dev_debug_overlay
 # rename devtools_item_container font resources for consistency
@@ -52,31 +48,6 @@ extends Control
 # devCommands store their caller_self and method and validate before calling
 # devCommands also validate the signal exists on globalDebug before calling
 # devCommands are stored in a register/dict
-
-#//METHODS
-#
-# method to establish a new dev command (and, potentially, a new action button)
-# 1) creates a signal of 'dev_'+signal_id_suffix on GlobalDebug
-# 2) once signal exists (or if did already) connects the new signal to caller
-# 3) creates devCommand struct in devActionMenu - if typed/pressed calls signal
-# 4) connects tree_exited on caller to remove dev command method
-#
-# GlobalDebug.add_dev_command(
-#		signal_id_suffix: String,
-#		caller_self: Node,
-#		called_method: String,
-#		add_action_button: bool = true)
-
-# method to prune an unnecessary dev command
-# 1) removes signal connection
-# 2) looks for and removes signal connection to prune (step 4 above)
-# 3) removes relevant devCommand struct from devActionMenu
-# 4) removes relevant signal from globalDebug
-#
-# GlobalDebug.remove_dev_command(
-#		signal_id_suffix: String,
-#		caller_self: Node,
-#		called_method: String)
 
 ##############################################################################
 #
