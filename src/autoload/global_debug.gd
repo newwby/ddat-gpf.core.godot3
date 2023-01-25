@@ -15,6 +15,7 @@ extends GameGlobal
 
 # TODO
 #// add variation of logError that is just for minor errors (never pushes)
+#// add optional binds for devCommand signals
 
 ##############################################################################
 
@@ -26,8 +27,18 @@ extends GameGlobal
 # visible ingame. This is useful to get feedback in unstable release builds.
 signal update_debug_overlay_item(item_key, item_value)
 
+# signals to manage the devActionMenu via globalDebug methods
+signal add_new_dev_command(devcmd_id, add_action_button)
+signal remove_dev_command(devcmd_id)
+
 # for passing to error logging
 const SCRIPT_NAME := "GlobalDebug"
+
+#//REVIEW - may be adding unnecessary complexity, could just add a check
+# that the signal doesn't already exist when trying to add a dev comamnd
+#
+# all signals passed via add_dev_command prefix themselves with this string
+#const DEV_COMMAND_SIGNAL_PREFIX := "dev_"
 
 # developer flag, if set then all errors called through the log_error method
 # will pause project execution through a false assertion (this functionality
@@ -98,27 +109,61 @@ func _ready():
 
 
 # method to establish a new dev command (and, potentially, a new action button)
-# 1) creates a signal of 'dev_'+signal_id_suffix on GlobalDebug
+# 1) creates passed string as a signal on GlobalDebug
 # 2) once signal exists (or if did already) connects the new signal to caller
-# 3) creates devCommand struct in devActionMenu - if typed/pressed calls signal
-# 4) connects tree_exited on caller to remove dev command method
+# 3) connects tree_exited on caller to remove dev command method
+# 4) creates devCommand struct in devActionMenu - if typed/pressed calls signal
 # [Usage]
 # Call add_dev_command from on_ready() on any node with a method you wish
 # to add as a dev_command
 # [method params as follows]
-##1, signal_id_suffix, is
-##2, caller, is
-##3, called_method, is
-##4, add_action_button, controls
+##1, signal_id, is the string identifier of the signal created on globalDebug
+##2, caller, is the node whom the signal connects to
+##3, called_method, is the string name of the method (on caller) connected to
+#	by the devCommand. When the command is typed on the devActionMenu, or the
+#	corresponding devActionMenu button is pressed, this is the activated method
+##4, add_action_button, is passed with the siganl to create a devCommand object
+#	on the devActionMenu - if true a button will be created on the menu for
+#	ease of activating the command. If false it will be via text input only.
 func add_dev_command(
-	signal_id_suffix: String,
+	signal_id: String,
 	caller: Node,
-	called_method: String,
+	caller_method: String,
 	add_action_button: bool = true
 ):
-	pass
-	# emit signal to devActionMenu (which should have connected to the signal
-	# in its onready) to create a devCommand struct
+	# dev commands are designed to connect to a single caller/method but
+	# technically nothing prevents them from calling multiple
+	# if the new signal already exists on globalDebug, just warn the dev
+	if self.has_signal(signal_id):
+		log_success(verbose_logging, SCRIPT_NAME, "add_dev_command",
+				"connecting a secondary caller to a pre-existing dev "+\
+				"command signal, did you mean to do this?")
+	
+	# handle error logging with a single string
+	var errstring = ""
+	
+	# normal behaviour, create signal
+	self.add_user_signal(signal_id)
+	if not self.has_signal(signal_id):
+		errstring += "signal {s} not found".format({"s": signal_id})
+	else:
+		if not caller.has_method(caller_method):
+			errstring += "method {cm} not found".format({"cm": caller_method})
+		else:
+			if self.connect(signal_id, caller, caller_method) != OK:
+				errstring += "unable to connect to {c}".format({"c": caller})
+			# if everything OK
+			else:
+				# on exiting tree remove the associated dev command
+				caller.connect("tree_exiting", self, "delete_dev_command",
+					[signal_id, caller, caller_method])
+				# send signal to create a devCommand struct in devActionMenu
+				emit_signal("add_new_dev_command",
+						signal_id, add_action_button)
+	
+	# any addition to err string means an error branch above was encountered
+	if errstring != "":
+		log_error(SCRIPT_NAME, "add_dev_command", errstring)
 
 
 # method to prune an unnecessary dev command
