@@ -29,6 +29,7 @@ signal update_debug_overlay_item(item_key, item_value)
 
 # signals to manage the devActionMenu via globalDebug methods
 signal add_new_dev_command(devcmd_id, add_action_button)
+# warning-ignore:unused_signal
 signal remove_dev_command(devcmd_id)
 
 # for passing to error logging
@@ -155,8 +156,15 @@ func add_dev_command(
 			# if everything OK
 			else:
 				# on exiting tree remove the associated dev command
-				caller.connect("tree_exiting", self, "delete_dev_command",
-					[signal_id, caller, caller_method])
+# warning-ignore:return_value_discarded
+				if caller.connect("tree_exiting", self, "delete_dev_command",
+					[signal_id, caller, caller_method]) != OK:
+						GlobalDebug.log_error(SCRIPT_NAME, "add_dev_command",
+								"command not added, error {1} {2} {3}".format({
+									"1": signal_id,
+									"2": caller,
+									"3": caller_method,
+								}))
 				# send signal to create a devCommand struct in devActionMenu
 				emit_signal("add_new_dev_command",
 						signal_id, add_action_button)
@@ -177,12 +185,17 @@ func add_dev_command(
 ##1, signal_id_suffix, is
 ##2, caller, is
 ##3, called_method, is
-func delete_dev_command(
-	signal_id_suffix: String,
-	caller: Node,
-	called_method: String
-):
-	pass
+#func delete_dev_command(
+## warning-ignore:unused_argument
+## warning-ignore:unused_argument
+## warning-ignore:unused_argument
+## warning-ignore:unused_argument
+## warning-ignore:unused_argument
+#	signal_id_suffix: String,
+#	caller: Node,
+#	called_method: String
+#):
+#	pass
 
 
 # [Usage]
