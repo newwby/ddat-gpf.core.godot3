@@ -38,6 +38,7 @@ config/icon="res://_dev/ddat_icon.png"
 GlobalData="*res://src/ddat-gpf/autoload/global_data.gd"
 GlobalDebug="*res://src/ddat-gpf/autoload/global_debug.gd"
 GlobalDevTools="*res://src/ddat-gpf/autoload/global_devtools.tscn"
+GlobalFunc="*res://src/ddat-gpf/autoload/global_functions.gd"
 
 [debug]
 
