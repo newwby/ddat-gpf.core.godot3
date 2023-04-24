@@ -198,6 +198,28 @@ func add_dev_command(
 #	pass
 
 
+func log_error_dev(
+			caller,
+			error_):
+	pass
+	# WHY changing?
+	# the current version is a bit verbose, a bit messy to read and understand
+	# the current version requires too many arguments
+	# requirement for SCRIPT_NAME and VERBOSE_LOGGING is a mess
+	# can get 'script_name' from caller if they are an object
+	# verbose logging should be an argument in globalDebug, perhaps a method
+	#	to update the allowed callers for verbose logging
+	# get stack trace as string should be a separate method
+	# test logging should be moved out of here
+	# debug overlay should be moved to a dev autoload
+	#	or should globaldebug be renamed globallog and dev autoload be debug?
+	# TODO:
+	# look at other logging systems
+	# look at asynchronous logging, look at how not to overflow the console
+	# exit notification logging/saving?
+	# tracking total logging calls?
+
+
 # [Usage]
 # use GlobalDebug.log_error() in methods at points where you do not expect
 # the project to reach during normal runtime
