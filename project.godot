@@ -9,18 +9,12 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Resource",
-"class": "GameDataContainer",
-"language": "GDScript",
-"path": "res://src/ddat-gpf/classes/class_game_data_container.gd"
-}, {
 "base": "Node",
 "class": "GameGlobal",
 "language": "GDScript",
 "path": "res://src/ddat-gpf/classes/class_global.gd"
 } ]
 _global_script_class_icons={
-"GameDataContainer": "",
 "GameGlobal": ""
 }
 
