@@ -45,7 +45,7 @@ window/size/height=1080
 
 [editor]
 
-script_templates_search_path="res://_dev/default_scripts"
+script_templates_search_path="res://_dev/script_templates"
 
 [logging]
 
