@@ -11,6 +11,10 @@ extends GameGlobal
 
 ##############################################################################
 
+signal node_reparented(node)
+
+##############################################################################
+
 
 # return argument depends on passed 'is_added' argument
 # returns true on (is_added==true) if connection was added or already existed
@@ -52,4 +56,42 @@ func confirm_signal(
 			signal_return_state = true
 		
 	return signal_return_state
+
+
+# method to move a node from beneath one node to another
+# if not already inside tree (parent not found) will skip removing step
+# will emit signal with node when finished, does not return as return
+#	will be delayed with deferred remove/add steps; return signal will
+#	include node as value if succesful, or null if not
+# [parameters]
+# #1, 'arg_target_node' - the node to be moved to a new parent; this node
+#	can already have a parent or not even be in the scene tree
+# #2, 'arg_new_parent' - the intended destination node to parent
+#	arg_target_node beneath
+func reparent_node(arg_target_node: Node, arg_new_parent: Node) -> void:
+	var reparent_success := false
+	# remove from initial parent, get target node out of SceneTree
+	if arg_target_node.is_inside_tree():
+		var old_parent_node = arg_target_node.get_parent()
+		if old_parent_node != null:
+			old_parent_node.call_deferred("remove_child", arg_target_node)
+			yield(arg_target_node, "tree_exited")
+	# add to new parent
+	if not arg_target_node.is_inside_tree():
+		if arg_new_parent.is_inside_tree():
+			arg_new_parent.call_deferred("add_child", arg_target_node)
+			yield(arg_target_node, "tree_entered")
+			# confirm
+			if arg_target_node.is_inside_tree():
+				if arg_target_node.get_parent() == arg_new_parent:
+					reparent_success = true
+	# if succesful exit condition was reached
+	if reparent_success:
+		emit_signal("node_reparented", arg_target_node)
+	else:
+		emit_signal("node_reparented", null)
+		
+
+
+##############################################################################
 
