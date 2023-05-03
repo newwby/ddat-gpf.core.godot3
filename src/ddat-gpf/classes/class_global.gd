@@ -13,6 +13,8 @@ class_name GameGlobal
 
 # variants go here
 
+var verbose_logging := false
+
 ##############################################################################
 
 # virt
