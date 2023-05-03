@@ -157,6 +157,46 @@ func create_directory(
 	return return_code
 
 
+# This method gets the directory names within a directory and returns those
+# names within an array.
+#//TODO add get_recursively and build recursive array (alternate method?)
+# Method is derived from get_file_paths() and follows a similar structure.
+# //TODO
+# Follows previous ddat-gpf.0.1.7 style, i.e. no arg_prefix <- TODO fix this
+# This method needs to be moved to the next ddat-gpf.core version
+#// should hidden_files be skipped? (also check/verify for get_file_paths)
+func get_directory_names(
+		directory_path: String
+		) -> PoolStringArray:
+	# validate path
+	var dir_access := Directory.new()
+	var directory_name := ""
+	var return_directory_names: PoolStringArray = []
+	# find the directory, loop through the directory
+	if dir_access.open(directory_path) == OK:
+		# skip if directory couldn't be opened
+		# skip navigational and hidden
+		if dir_access.list_dir_begin(true, true) != OK:
+			return return_directory_names
+		# find first file in directory, prep validation bool, and start
+		directory_name = dir_access.get_next()
+		while directory_name != "":
+			# check isn't a directory (i.e. is a file)
+			if dir_access.current_is_dir():
+#				print("adding directory ")
+#				print("dirpath = ", directory_path)
+#				print("dirname = ", directory_name)
+				return_directory_names.append(directory_name)
+				# if they didn't, nothing is appended
+			# end of loop
+			# get next file
+			directory_name = dir_access.get_next()
+		dir_access.list_dir_end()
+	return return_directory_names
+	# catchall
+#	return return_directory_names
+
+
 # this method returns the string value of the DATA_PATHS (dict) database,
 # the path to the local directory (res://)
 # this is shorter and less prone to user error than the dev writing;
