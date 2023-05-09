@@ -312,12 +312,13 @@ func get_file_paths(
 										}))
 				# validation checks passed successfully
 				if add_found_file:
-					return_file_paths.append(directory_path+file_name)
+					return_file_paths.append(directory_path+"/"+file_name)
 				# if they didn't, nothing is appended
 			# end of loop
 			# get next file
 			file_name = dir_access.get_next()
 		dir_access.list_dir_end()
+#	print("returning return_file_paths@ ", return_file_paths)
 	return return_file_paths
 
 
