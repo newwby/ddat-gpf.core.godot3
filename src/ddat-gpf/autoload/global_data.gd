@@ -25,7 +25,7 @@ extends GameGlobal
 
 #// add optional arg for making write_directory recursive (currently default)
 
-#// add a minor logging method for get_arg_file_paths (globalDebug update)
+#// add a minor logging method for get_file_paths (globalDebug update)
 
 #// update save resource method or resourceLoad to handle .backup not .tres
 #// add recursive param to load_resources_in_directory
@@ -145,11 +145,11 @@ func create_directory(
 # This method gets the directory names within a directory and returns those
 # names within an array.
 #//TODO add get_recursively and build recursive array (alternate method?)
-# Method is derived from get_arg_file_paths() and follows a similar structure.
+# Method is derived from get_file_paths() and follows a similar structure.
 # //TODO
 # Follows previous ddat-gpf.0.1.7 style, i.e. no arg_prefix <- TODO fix this
 # This method needs to be moved to the next ddat-gpf.core version
-#// should hidden_files be skipped? (also check/verify for get_arg_file_paths)
+#// should hidden_files be skipped? (also check/verify for get_file_paths)
 func get_directory_names(
 		arg_directory_path: String
 		) -> PoolStringArray:
@@ -213,7 +213,7 @@ func get_dirpath_user() -> String:
 ##5, arg_incl_substrings, array of strings which the file name is checked against
 #	and the file name must include
 #	(leave params as default (i.e. empty strings or "") to ignore behaviour)
-func get_arg_file_paths(
+func get_file_paths(
 		arg_directory_path: String,
 		arg_req_file_prefix: String = "",
 		arg_req_file_suffix: String = "",
@@ -245,7 +245,7 @@ func get_arg_file_paths(
 						# successful validation to exempt a file
 						#// need a minor logging method added
 						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
-								"get_arg_file_paths",
+								"get_file_paths",
 								"prefix {p} not in file name {f}".format({
 									"p": arg_req_file_prefix,
 									"f": file_name
@@ -257,7 +257,7 @@ func get_arg_file_paths(
 						# successful validation to exempt a file
 						#// need a minor logging method added
 						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
-								"get_arg_file_paths",
+								"get_file_paths",
 								"suffix {s} not in file name {f}".format({
 									"s": arg_req_file_suffix,
 									"f": file_name
@@ -272,7 +272,7 @@ func get_arg_file_paths(
 								#// need a minor logging method added
 								GlobalDebug.log_success(verbose_logging,
 										SCRIPT_NAME,
-										"get_arg_file_paths",
+										"get_file_paths",
 										"bad str {s} in file name {f}".format({
 											"s": force_exclude,
 											"f": file_name
@@ -287,7 +287,7 @@ func get_arg_file_paths(
 								#// need a minor logging method added
 								GlobalDebug.log_success(verbose_logging,
 										SCRIPT_NAME,
-										"get_arg_file_paths",
+										"get_file_paths",
 										"no str {s} in file name {f}".format({
 											"s": force_include,
 											"f": file_name
@@ -367,15 +367,15 @@ func load_resource(
 
 
 # this method extends the load resource method to get **every** resource
-# within a given directory. It pulls files using the get_arg_file_paths method.
-# this method can be passed any argument from get_arg_file_paths or load_resource
+# within a given directory. It pulls files using the get_file_paths method.
+# this method can be passed any argument from get_file_paths or load_resource
 # [method params as follows]
 ##1, arg_directory_path, is the path to the directory containing resources that
 # you wish the method to return
-##2, arg_req_file_prefix, see the method 'get_arg_file_paths'
-##3, arg_req_file_suffix, see the method 'get_arg_file_paths'
-##4, arg_excl_substrings, see the method 'get_arg_file_paths'
-##5, arg_incl_substrings, see the method 'get_arg_file_paths'
+##2, arg_req_file_prefix, see the method 'get_file_paths'
+##3, arg_req_file_suffix, see the method 'get_file_paths'
+##4, arg_excl_substrings, see the method 'get_file_paths'
+##5, arg_incl_substrings, see the method 'get_file_paths'
 ##6, type_cast, see the method 'load_resource'
 func load_resources_in_directory(
 		arg_directory_path: String,
@@ -387,7 +387,7 @@ func load_resources_in_directory(
 	var returned_resources := []
 	var paths_to_resources: PoolStringArray = []
 	# get paths for files in directory
-	paths_to_resources = get_arg_file_paths(
+	paths_to_resources = get_file_paths(
 		arg_directory_path,
 		arg_req_file_prefix,
 		arg_req_file_suffix,
