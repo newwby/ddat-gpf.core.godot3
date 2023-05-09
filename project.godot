@@ -18,10 +18,16 @@ _global_script_classes=[ {
 "class": "GameGlobal",
 "language": "GDScript",
 "path": "res://src/ddat-gpf/classes/class_global.gd"
+}, {
+"base": "Node",
+"class": "UnitTest",
+"language": "GDScript",
+"path": "res://_testenv/test_classes/class_unit_test.gd"
 } ]
 _global_script_class_icons={
 "GameDataContainer": "",
-"GameGlobal": ""
+"GameGlobal": "",
+"UnitTest": ""
 }
 
 [application]
