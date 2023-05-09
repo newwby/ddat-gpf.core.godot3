@@ -198,10 +198,10 @@ func add_dev_command(
 #	pass
 
 
-func log_error_dev(
-			caller,
-			error_):
-	pass
+#func log_error_dev(
+#			caller,
+#			error_):
+#	pass
 	# WHY changing?
 	# the current version is a bit verbose, a bit messy to read and understand
 	# the current version requires too many arguments
