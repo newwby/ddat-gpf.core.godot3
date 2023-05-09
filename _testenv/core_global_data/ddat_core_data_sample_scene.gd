@@ -195,7 +195,7 @@ func _unit_test_save_and_load_resource():
 # this unit test will rewrite the directory/files each time
 func _unit_test_get_paths_main():
 	# start test by validating (and writing if messing) the test files
-	var test_save_path := "user://unit_test/get_paths/"
+	var test_save_path := "user://unit_test/get_paths"
 	var test_file_1 := "file1.tres"
 	var test_file_2 := "file2.tres"
 	var test_file_3 := "file3.tres"
@@ -220,12 +220,12 @@ func _unit_test_get_paths_main():
 		return
 	
 	var expected_result_full: PoolStringArray = [
-		(test_save_path+test_file_1),
-		(test_save_path+test_file_2),
-		(test_save_path+test_file_3)
+		(test_save_path+"/"+test_file_1),
+		(test_save_path+"/"+test_file_2),
+		(test_save_path+"/"+test_file_3)
 	]
 	var expected_result_partial1: PoolStringArray = [
-		(test_save_path+test_file_1)
+		(test_save_path+"/"+test_file_1)
 	]
 #	var expected_result_partial2 := [
 #		(test_save_path+test_file_1),
