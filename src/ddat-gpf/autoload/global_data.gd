@@ -80,42 +80,27 @@ const DATA_PATHS := {
 # public methods
 
 
-# method allows building paths from the DATA_PATHS (dict) database; a record
-# which can be extended by the developer to add their own specific nested
-# directory paths. This allows for consistent directory referencing.
-# this method can be passed a file name argument or directory path to extend
-# the fixed data path stored in DATA_PATHS
-# [method params as follows]
-##1, data_path_key, is a key from DATA_PATH_PREFIXES for DATA_PATHS
-##2, file_name, is an extension for the data path, applied last
-##3, directory_path, is an extension for the data path, applied first
+# DEPRECATED
+# unnecessary method, simpler to do this with concatenation
 func build_path(
 		data_path_key,
-		file_name: String="",
-		directory_path: String=""
+		file_name: String = "",
+		directory_path: String = ""
 		) -> String:
-	# get the initial data path from the directory
 	var full_data_path: String = ""
 	var get_fixed_data_path: String
 	if data_path_key in DATA_PATHS.keys():
 		if typeof(DATA_PATHS[data_path_key]) == TYPE_STRING:
-			get_fixed_data_path = DATA_PATHS[data_path_key]# as String
-			# build the path
+			get_fixed_data_path = DATA_PATHS[data_path_key]
 			full_data_path = full_data_path + get_fixed_data_path
 	else:
-		# returns empty on invalid data_path_key
 		GlobalDebug.log_error(SCRIPT_NAME, "build_path",
 				"data_path_key {k} not found".format({"k": data_path_key}))
 		return ""
 	
-	# if dirpath not empty, append to the data path
 	if directory_path != "":
-		# build the path
 		full_data_path = full_data_path + directory_path
-	
-	# if file name not empty, append to the data path
 	if file_name != "":
-		# build the path
 		full_data_path = full_data_path + file_name
 	
 	# return the path
