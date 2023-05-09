@@ -5,13 +5,16 @@
 
 ##############################################################################
 
-# This is a slightly modified version of the 3.0 (rev 5f5a9378)  style guide
-# Changes are documented below with <- indicators
-# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html
+#04. # dependencies, docstring, #//TODO
 
-#04a. dependencies <- new addition
-#04b. # docstring
-#04c. #//TODO
+# This is a modified version of the 3.5 gdscript style guide
+# https://docs.godotengine.org/en/3.5/tutorials/scripting/gdscript/gdscript_styleguide.html
+
+# all arguments should be prefixed with arg_ so it is clear in the code
+# block what is a parameter and what is an argument at first glance
+#
+#	 func _example(arg_argument_name):
+#		pass
 
 ##############################################################################
 
@@ -34,8 +37,8 @@
 #	pass # Replace with function body.
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
+# Called every frame. 'arg_delta' is the elapsed time since the previous frame.
+#func _process(arg_delta):
 #	pass
 
 
