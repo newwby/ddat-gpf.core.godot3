@@ -16,9 +16,46 @@ signal node_reparented(node)
 ##############################################################################
 
 
-# return argument depends on passed 'is_added' argument
-# returns true on (is_added==true) if connection was added or already existed
-# returns true on (is_added==false) if connection was removed or didn't exist
+# ensures a specific signal connection exists between sender and target
+# returns OK if connection exists or is created
+# returns ERR if the connection cannot be found and is not succesfully made
+func confirm_connection(
+		origin: Object,
+		signal_name: String,
+		target: Object,
+		method_name: String,
+		binds: Array = [],
+		flags: int = 0
+		):
+	var return_code := ERR_CANT_CONNECT
+	if origin.is_connected(signal_name, target, method_name):
+		return_code = OK
+	else:
+		return_code =\
+				origin.connect(signal_name, target, method_name, binds, flags)
+	return return_code
+
+
+# ensures a specific signal connection does not exist between sender and target
+# returns OK if connection exists or is created
+# returns ERR if the connection cannot be found and is not succesfully made
+func confirm_disconnection(
+		origin: Object,
+		signal_name: String,
+		target: Object,
+		method_name: String
+		):
+	if origin.is_connected(signal_name, target, method_name):
+		origin.disconnect(signal_name, target, method_name)
+	if (origin.is_connected(signal_name, target, method_name) == false):
+		return OK
+	else:
+		return ERR_CANT_RESOLVE
+
+
+# DEPRECATED
+# (see https://github.com/newwby/ddat-gpf.core/issues/10)
+# Use the methods 'confirm_connection' or 'confirm_disconnection' instead
 func confirm_signal(
 		is_added: bool,
 		sender: Node,
