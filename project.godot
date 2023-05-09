@@ -17,7 +17,7 @@ _global_script_classes=[ {
 "base": "Node",
 "class": "GameGlobal",
 "language": "GDScript",
-"path": "res://src/ddat-gpf/classes/class_global.gd"
+"path": "res://src/ddat-gpf/core/classes/class_global.gd"
 }, {
 "base": "Node",
 "class": "UnitTest",
@@ -41,9 +41,9 @@ config/icon="res://_dev/ddat_icon.png"
 
 [autoload]
 
-GlobalData="*res://src/ddat-gpf/autoload/global_data.gd"
-GlobalDebug="*res://src/ddat-gpf/autoload/global_debug.tscn"
-GlobalFunc="*res://src/ddat-gpf/autoload/global_functions.gd"
+GlobalData="*res://src/ddat-gpf/core/autoload/global_data.gd"
+GlobalDebug="*res://src/ddat-gpf/core/autoload/global_debug.tscn"
+GlobalFunc="*res://src/ddat-gpf/core/autoload/global_functions.gd"
 
 [debug]
 
