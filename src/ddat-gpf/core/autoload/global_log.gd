@@ -28,8 +28,12 @@ onready var coderef = ErrorCodes.new()
 
 
 # Called when the node enters the scene tree for the first time.
-#func _ready():
-#	pass # Replace with function body.
+func _ready():
+	pass # Replace with function body.
+	error(self, "testing logging please remember to disable this")
+	info(self, "testing logging please remember to disable this")
+	trace(self, "testing logging please remember to disable this")
+	warning(self, "testing logging please remember to disable this")
 
 
 ##############################################################################
@@ -104,20 +108,25 @@ func _log(
 #	if "name" in arg_caller:
 #		caller_id += ": "+arg_caller.name
 	
-	var error_code: String
+	var full_error_message: String
 	if coderef.is_key(arg_error_message):
-		error_code = coderef.get_error_string(arg_error_message)
+		full_error_message = coderef.get_error_string(arg_error_message)
 	else:
-		error_code = str(arg_error_message)
+		full_error_message = str(arg_error_message)
 	
 	var log_code_id =\
 			arg_log_code if arg_log_code in LOG_CODES.values() else 0
 	var log_code_name = LOG_CODES.keys()[log_code_id]
 	
+	var log_timestamp = Time.get_ticks_msec()
+	
 	var full_log_string =\
-			"[{log_type}] ".format({"log_type": str(log_code_name)})+\
-			" @ "+str(caller_id)+\
-			" | "+str(error_code)
+			"[t{time}] {caller}\t[{type}] | {message}".format({
+				"type": log_code_name,
+				"time": log_timestamp,
+				"caller": str(caller_id),
+				"message": str(full_error_message)
+				})
 	
 	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
