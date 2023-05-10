@@ -114,11 +114,12 @@ func _ready():
 	# method is called, it redirects to _update_debug_item_container method
 	if GlobalDebug.connect("update_debug_overlay_item",
 			self, "_on_update_debug_overlay_item_notify_container") != OK:
+		pass
 		# report error on failure to link debug info voerlay to globalDebug
-		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
-	else:
-		GlobalDebug.log_success(VERBOSE_LOGGING,\
-				SCRIPT_NAME, "_ready", "itemcon.setup")
+#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
+#	else:
+#		GlobalDebug.log_success(VERBOSE_LOGGING,\
+#				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
 	# automatically show on debug builds
 	self.visible = (OS.is_debug_build())
