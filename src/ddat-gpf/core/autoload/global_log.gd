@@ -6,6 +6,14 @@ extends GameGlobal
 
 enum LOG_CODES {UNDEFINED, ERROR, WARNING, TRACE, INFO}
 
+# if in debug mode, errors will force a false assertion and stop the project
+const DEBUGGER_ASSERTS_ERRORS := false
+
+# if false warnings/errors will be logged in release versions
+# if true warnings/errors will be pushed and printed
+const WARNINGS_PRINT_TO_CONSOLE := true
+const ERRORS_PRINT_TO_CONSOLE := true
+
 onready var coderef = ErrorCodes.new()
 
 ##############################################################################
@@ -75,10 +83,20 @@ func _log(
 	
 	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
+		# are all errors reason to stop project in debug mode?
+		if DEBUGGER_ASSERTS_ERRORS and OS.is_debug_build():
+			assert(2 == 3)
+		if not ERRORS_PRINT_TO_CONSOLE:
+			return
+	
 	elif arg_log_code == LOG_CODES.WARNING:
 		push_warning(full_log_string)
-	else:
-		print(full_log_string)
+		if not WARNINGS_PRINT_TO_CONSOLE:
+			return
+	
+	# console output
+	# only reachable by errors/warnings if print_to_console consts are set
+	print(full_log_string)
 
 
 #func example_method():
