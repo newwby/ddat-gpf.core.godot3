@@ -64,16 +64,14 @@ func warning(arg_caller: Object, arg_error_code):
 # #2, arg_error_code - ERR message
 #		this can be a custom string, a value you want printed, an ERR
 #		constant from globalScope or a key from the ErrorCodes class
-# #3, arg_log_code - passed from the public logging methods
+# #3, arg_log_message - passed from the public logging methods
 #		refers to the type of log (i.e. ERROR, WARNINGING, TRACE, or INFO),
 #		and influences whether is printed or pushed
 func _log(
 		arg_caller: Object,
 		arg_error_code,
-		arg_log_code: int = 0
+		arg_log_message: int = 0
 		):
-	var log_message := ""
-	
 	var caller_id: String = str(arg_caller)
 #	if "name" in arg_caller:
 #		caller_id += ": "+arg_caller.name
@@ -84,15 +82,16 @@ func _log(
 	else:
 		error_code = str(arg_error_code)
 	
-	var log_code_id = arg_log_code if arg_log_code in LOG_CODES.values() else 0
+	var log_code_id =\
+			arg_log_message if arg_log_message in LOG_CODES.values() else 0
 	var log_code_name = LOG_CODES.keys()[log_code_id]
 	
 	var full_log_string =\
-			"[log] "+str(log_code_name)+\
+			"[{log_type}] ".format({"log_type": str(log_code_name)})+\
 			" @ "+str(caller_id)+\
-			" | Error Code: "+str(error_code)
+			" | "+str(error_code)
 	
-	if arg_log_code == LOG_CODES.ERROR:
+	if arg_log_message == LOG_CODES.ERROR:
 		push_error(full_log_string)
 		# are all errors reason to stop project in debug mode?
 		if DEBUGGER_ASSERTS_ERRORS and OS.is_debug_build():
@@ -100,7 +99,7 @@ func _log(
 		if not ERRORS_PRINT_TO_CONSOLE:
 			return
 	
-	elif arg_log_code == LOG_CODES.WARNING:
+	elif arg_log_message == LOG_CODES.WARNING:
 		push_warning(full_log_string)
 		if not WARNINGS_PRINT_TO_CONSOLE:
 			return
