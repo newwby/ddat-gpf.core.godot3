@@ -20,7 +20,44 @@ const ALLOW_INFO := true
 const ALLOW_TRACE := true
 const ALLOW_WARNING := true
 
+# if set true, all logs will be saved and remembered during the run session
+# if set false logs will not be remembered (though they will still be
+# output to console and consequently the user log files)
+# logs made whilst this is set false cannot be recovered
+var record_logs := true
+
+# record of who logged what and when
+# nothing is recorded if record_logs is set to false
+var log_register = {}
+
 onready var coderef = ErrorCodes.new()
+
+##############################################################################
+
+
+class LogRecord:
+	var owner: Object
+	var timestamp: int
+	var log_code_id: int
+	var log_code_name: String
+	var log_message: String
+	var full_log_string: String
+	
+	func _init(
+			arg_owner: Object,
+			arg_log_timestamp: int,
+			arg_log_code_id: int,
+			arg_log_code_name: String,
+			arg_log_message: String,
+			arg_log_string: String
+			):
+		self.owner = arg_owner
+		self.timestamp = arg_log_timestamp
+		self.log_code_id = arg_log_code_id
+		self.log_code_name = arg_log_code_name
+		self.log_message = arg_log_message
+		self.full_log_string = arg_log_string
+
 
 ##############################################################################
 
@@ -114,9 +151,9 @@ func _log(
 	else:
 		full_error_message = str(arg_error_message)
 	
-	var log_code_id =\
+	var log_code_id: int =\
 			arg_log_code if arg_log_code in LOG_CODES.values() else 0
-	var log_code_name = LOG_CODES.keys()[log_code_id]
+	var log_code_name: String = str(LOG_CODES.keys()[log_code_id])
 	
 	var log_timestamp = Time.get_ticks_msec()
 	
@@ -127,6 +164,14 @@ func _log(
 				"caller": str(caller_id),
 				"message": str(full_error_message)
 				})
+	
+	# if recording all logs, create an object to remember it
+	if record_logs:
+		_update_log_register(
+			arg_caller,
+			LogRecord.new(arg_caller, log_timestamp, log_code_id,
+					log_code_name, full_error_message, full_log_string)
+			)
 	
 	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
@@ -144,6 +189,19 @@ func _log(
 	# console output
 	# only reachable by errors/warnings if print_to_console consts are set
 	print(full_log_string)
+
+
+func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
+	var caller_record
+	if arg_caller in log_register.keys():
+		caller_record = log_register[arg_caller]
+		if typeof(caller_record) == TYPE_ARRAY:
+			caller_record.append(arg_log_record)
+		else:
+			warning(self, "log_register entry for {e} != array".format({
+					"e": arg_caller}))
+	else:
+		log_register[arg_caller] = [arg_log_record]
 
 
 ######################
