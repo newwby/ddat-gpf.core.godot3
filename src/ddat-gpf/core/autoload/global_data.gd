@@ -409,51 +409,39 @@ func load_resources_in_directory(
 
 # method to save any resource or resource-extended custom class to disk.
 # call this method with 'if save_resource(*args) == OK' to validate
-#
 # [method params as follows]
-##1, arg_directory_path, is the path to the file location sans the arg_file_name
-#	e.g. 'user://saves/player1.tres' should be passed as 'user://saves/'
-# (Always leave a trailing slash on the end of directory paths.)
-#
-##2, arg_file_name, is the name of the file
-#	e.g. 'user://saves/player1.tres' should be passed as 'player1.tres'
-#	(note: resource extensions should always be .tres for a resource)
-# the first two arguments are combined to get the full file path; they exist
-# as separate arguments so directories can be validated independent of files.
-#
-##3, arg_saveable_res, is the resource object to save
-#
-##4, arg_force_write_file, specifies whether to allow overwriting an existing
-# file; if it is set false then the resource will not be saved if it finds a
-# file (whether the file is a valid resource or not) at the file path argument.
-# You can use this to save default versions of user-customisable files like
-# data containers for game saves, player progression, or scores.
-#
-##5, arg_force_write_directory, specifies whether to allow creating directories
-# during the save operation; if set false will require save operations to take
-# place in an existing directory, returning with an error argument if the
-# directory doesn't exist. if arg5 is set true it will create directories when
-# the save operation is called.
-#	(calling with a force_write arg will override 'path not found' error
-#	logging for the file or directory validation methods respectively,
-#	see 'is_write_operation_directory_valid' & '_is_write_operation_path_vaild')
-##6, arg_increment_backup, stores the previous file as a separate file with the
-# const 'BACKUP_SUFFIX' applied before the file extension. This is performed by
-# stripping the expected string constant of RESOURCE_FILE_EXTENSION from the
-# file path, applying the backup suffix, then reapplying the file extension.
-#	(Backups can be set to be loaded as part of a failed load)
+# #1, arg_file_path, is the full path to the file location
+# #2, arg_saveable_res, is the resource object to save
+# #3, arg_force_write_file, is whether to allow overwriting existing files
+#	if it is set false then the resource will not be saved if it finds a
+#	file (whether the file is a valid resource or not) at the file path argument.
+# #4, arg_force_write_directory, whether to create missing directories
+#	if set false will require save operations to take place in an existing
+#	directory, returning with an error argument if the directory doesn't exist.
+# #5, arg_increment_backup, whether to keep previous file or overwrite it
+#	if set stores previous file as a separate file with 'BACKUP_SUFFIX' before
+#	the file extension.
 func save_resource(
-		arg_directory_path: String,
-		arg_file_name: String,
+		arg_file_path: String,
 		arg_saveable_res: Resource,
 		arg_force_write_file: bool = true,
 		arg_force_write_directory: bool = true,
 		arg_increment_backup : bool = false
 		) -> int:
-	# combine paths
-	var full_data_path: String = arg_directory_path+arg_file_name
 	# error code (or OK) for returning
 	var return_code: int
+	# split directory path and file path
+	var directory_path = arg_file_path.split("/")
+	var file_and_ext = directory_path[-1]
+	directory_path.remove(directory_path.size()-1)
+	directory_path = directory_path.join("/")
+#	print("directory_path = ", directory_path)
+#	print("file_and_ext = ", file_and_ext)
+#	print((directory_path+"/"+file_and_ext), " vs ", arg_file_path)
+#	assert((directory_path+"/"+file_and_ext) == arg_file_path)
+	if (directory_path+"/"+file_and_ext) != arg_file_path:
+		return ERR_FILE_BAD_PATH
+	
 	
 	# next up are methods to validate the write operation. For each;
 	# if OK (0), continue function. If an error code (1+), return the error.
@@ -461,7 +449,7 @@ func save_resource(
 	
 	# validate directory path
 	return_code = _is_write_operation_directory_valid(
-			arg_directory_path,
+			directory_path,
 			arg_force_write_directory
 			)
 	if return_code != OK:
@@ -469,14 +457,14 @@ func save_resource(
 	
 	# validate file path
 	return_code = _is_write_operation_path_valid(
-			full_data_path,
+			arg_file_path,
 			arg_force_write_file
 			)
 	if return_code != OK:
 		return return_code
 	
 	# validate write extension is valid
-	if not _is_resource_extension_valid(full_data_path):
+	if not _is_resource_extension_valid(arg_file_path):
 		# _is_resource_extension_valid already includes logging, redundant
 #		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
 #				"resource extension invalid")
@@ -484,44 +472,44 @@ func save_resource(
 	
 	# move on to the write operation
 	# if file is new, just attempt a write
-	if not validate_file(full_data_path):
-		return_code = ResourceSaver.save(full_data_path, arg_saveable_res)
+	if not validate_file(arg_file_path):
+		return_code = ResourceSaver.save(arg_file_path, arg_saveable_res)
 	# if file already existed, need to safely write to prevent corruption
 	# i.e. write to a temporary file, remove the older, make temp the new file
 	else:
 		# attempt the write operation
-		var temp_data_path = arg_directory_path+"temp_"+arg_file_name
+		var temp_data_path = directory_path+"temp_"+file_and_ext
 		return_code = ResourceSaver.save(temp_data_path, arg_saveable_res)
 		# if we wrote the file successfully, time to remove the old file
 		# i.e. move previous file to recycle bin/trash
 		var path_manager = Directory.new()
 		if return_code == OK:
 			# re: issue 67137, OS.move_to_trash will cause a project crash
-			# but on this branch the full_data_path should be validated
-			assert(validate_file(full_data_path, true))
+			# but on this branch the arg_file_path should be validated
+			assert(validate_file(arg_file_path, true))
 			# move to trash behaviour should only proceed if not backing up
 			if not arg_increment_backup:
 				# Note: If the user has disabled trash on their system,
 				# the file will be permanently deleted instead.
 				var get_global_path =\
-						ProjectSettings.globalize_path(full_data_path)
+						ProjectSettings.globalize_path(arg_file_path)
 				return_code = OS.move_to_trash(get_global_path)
 				# if file was moved to trash, the path should now be invalid
 			# if backing up, the previous file should be moved to backup
 			else:
-				var backup_path = full_data_path
+				var backup_path = arg_file_path
 				# path to file is already validated to have .tres extensino
-				backup_path = full_data_path.rstrip(".tres")
+				backup_path = arg_file_path.rstrip(".tres")
 				# concatenate string as backup
 				backup_path += BACKUP_SUFFIX
 				backup_path += RESOURCE_FILE_EXTENSION
-				return_code = path_manager.rename(full_data_path, backup_path)
+				return_code = path_manager.rename(arg_file_path, backup_path)
 			
 			if return_code == OK:
-				assert(not validate_file(full_data_path))
+				assert(not validate_file(arg_file_path))
 				# rename the temp file to be the new file
 				return_code = path_manager.rename(\
-						temp_data_path, full_data_path)
+						temp_data_path, arg_file_path)
 		# if the temporary file wasn't written successfully
 		else:
 			return return_code
