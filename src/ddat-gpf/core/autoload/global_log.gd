@@ -14,6 +14,12 @@ const DEBUGGER_ASSERTS_ERRORS := false
 const WARNINGS_PRINT_TO_CONSOLE := true
 const ERRORS_PRINT_TO_CONSOLE := true
 
+# if you wish to globally disable a log type you can do so here
+const ALLOW_ERROR := true
+const ALLOW_INFO := true
+const ALLOW_TRACE := true
+const ALLOW_WARNING := true
+
 onready var coderef = ErrorCodes.new()
 
 ##############################################################################
@@ -32,28 +38,46 @@ onready var coderef = ErrorCodes.new()
 
 
 # see _log for parameter explanation
-func error(arg_caller: Object, arg_error_code):
-	_log(arg_caller, arg_error_code, 1)
+func error(arg_caller: Object, arg_error_message):
+	_log(arg_caller, arg_error_message, 1)
 
 
 # see _log for parameter explanation
-func info(arg_caller: Object, arg_error_code):
-	_log(arg_caller, arg_error_code, 4)
+func info(arg_caller: Object, arg_error_message):
+	_log(arg_caller, arg_error_message, 4)
 
 
 # see _log for parameter explanation
-func trace(arg_caller: Object, arg_error_code):
-	_log(arg_caller, arg_error_code, 3)
+func trace(arg_caller: Object, arg_error_message):
+	_log(arg_caller, arg_error_message, 3)
 
 
 # see _log for parameter explanation
-func warning(arg_caller: Object, arg_error_code):
-	_log(arg_caller, arg_error_code, 2)
+func warning(arg_caller: Object, arg_error_message):
+	_log(arg_caller, arg_error_message, 2)
 
 
 ##############################################################################
 
 # private methods
+
+# method to check log is allowed (by ALLOW_ consts) before it goes ahead
+# if passed an invalid log code (i.e. not in the enum), will return false
+# if passed 'LOG_CODES.UNDEFINED' will return true
+func _can_log(arg_log_code: int = 0) -> bool:
+	match arg_log_code:
+		LOG_CODES.UNDEFINED:
+			return true
+		LOG_CODES.ERROR:
+			return ALLOW_ERROR
+		LOG_CODES.INFO:
+			return ALLOW_INFO
+		LOG_CODES.TRACE:
+			return ALLOW_TRACE
+		LOG_CODES.WARNING:
+			return ALLOW_WARNING
+	# anything not in LOG_CODES enum will reach here
+	return false
 
 
 # main logging method
@@ -61,29 +85,33 @@ func warning(arg_caller: Object, arg_error_code):
 # [param]
 # #1, arg_caller - identifier for method caller, pass as self
 #		will return self.name if name can be found
-# #2, arg_error_code - ERR message
+# #2, arg_error_message - ERR message
 #		this can be a custom string, a value you want printed, an ERR
 #		constant from globalScope or a key from the ErrorCodes class
-# #3, arg_log_message - passed from the public logging methods
+# #3, arg_log_code - passed from the public logging methods
 #		refers to the type of log (i.e. ERROR, WARNINGING, TRACE, or INFO),
 #		and influences whether is printed or pushed
 func _log(
 		arg_caller: Object,
-		arg_error_code,
-		arg_log_message: int = 0
+		arg_error_message,
+		arg_log_code: int = 0
 		):
+	# check the log type is valid (see ALLOW_ consts/_can_log method)
+	if not _can_log(arg_log_code):
+		return
+	
 	var caller_id: String = str(arg_caller)
 #	if "name" in arg_caller:
 #		caller_id += ": "+arg_caller.name
 	
 	var error_code: String
-	if coderef.is_key(arg_error_code):
-		error_code = coderef.get_error_string(arg_error_code)
+	if coderef.is_key(arg_error_message):
+		error_code = coderef.get_error_string(arg_error_message)
 	else:
-		error_code = str(arg_error_code)
+		error_code = str(arg_error_message)
 	
 	var log_code_id =\
-			arg_log_message if arg_log_message in LOG_CODES.values() else 0
+			arg_log_code if arg_log_code in LOG_CODES.values() else 0
 	var log_code_name = LOG_CODES.keys()[log_code_id]
 	
 	var full_log_string =\
@@ -91,7 +119,7 @@ func _log(
 			" @ "+str(caller_id)+\
 			" | "+str(error_code)
 	
-	if arg_log_message == LOG_CODES.ERROR:
+	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
 		# are all errors reason to stop project in debug mode?
 		if DEBUGGER_ASSERTS_ERRORS and OS.is_debug_build():
@@ -99,7 +127,7 @@ func _log(
 		if not ERRORS_PRINT_TO_CONSOLE:
 			return
 	
-	elif arg_log_message == LOG_CODES.WARNING:
+	elif arg_log_code == LOG_CODES.WARNING:
 		push_warning(full_log_string)
 		if not WARNINGS_PRINT_TO_CONSOLE:
 			return
