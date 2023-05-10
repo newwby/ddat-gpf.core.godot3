@@ -10,6 +10,11 @@ config_version=4
 
 _global_script_classes=[ {
 "base": "Resource",
+"class": "ErrorCodes",
+"language": "GDScript",
+"path": "res://src/ddat-gpf/core/classes/class_error_codes.gd"
+}, {
+"base": "Resource",
 "class": "GameDataContainer",
 "language": "GDScript",
 "path": "res://_testenv/test_classes/class_game_data_container.gd"
@@ -25,6 +30,7 @@ _global_script_classes=[ {
 "path": "res://_testenv/test_classes/class_unit_test.gd"
 } ]
 _global_script_class_icons={
+"ErrorCodes": "",
 "GameDataContainer": "",
 "GameGlobal": "",
 "UnitTest": ""
