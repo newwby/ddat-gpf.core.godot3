@@ -4,17 +4,10 @@ extends GameGlobal
 
 ##############################################################################
 
-# DDAT Debug Manager (or, GlobalDebug) is a singleton designed to aid in
-# debugging projects, through error logging, faciliating exposure  of game
-# parameters to the developer, and allowing the developer to quickly add
-# 'god-mode' actions accessible through a simple UI.
-#
-# DEPENDENCIES
-# Set as an autoload *BEFORE* DDAT_Core.GlobalData
-# Set as your first autoload, or as early as you can.
+# GlobalDebug allows developers to expose game properties during release
+# builds, through developer commands and a debugging overlay.
 
 # TODO
-#// add variation of logError that is just for minor errors (never pushes)
 #// add optional binds for devCommand signals
 
 ##############################################################################
