@@ -71,32 +71,33 @@ var _is_test_running = false
 ###############################################################################
 
 
-# debug manager prints some basic information about the user when ready
-# with stdout.verbose_logging
-func _ready():
-	# get basic information on the user
-	var user_datetime = OS.get_datetime()
-	var user_model_name = OS.get_model_name()
-	var user_name = OS.get_name()
-	
-	# convert the user datetime into something human-readable
-	var user_date_as_string =\
-			str(user_datetime["year"])+\
-			"/"+str(user_datetime["month"])+\
-			"/"+str(user_datetime["day"])
-	# seperate into both date and time
-	var user_time_as_string =\
-			str(user_datetime["hour"])+\
-			":"+str(user_datetime["minute"])+\
-			":"+str(user_datetime["second"])
-	
-	print("debug manager readied at: "+\
-			user_date_as_string+\
-			" | "+\
-			user_time_as_string)
-	print("[user] {name}\n{model}".format({\
-			"name": user_name,\
-			"model": user_model_name}))
+# feature removed
+## debug manager prints some basic information about the user when ready
+## with stdout.verbose_logging
+#func _ready():
+#	# get basic information on the user
+#	var user_datetime = OS.get_datetime()
+#	var user_model_name = OS.get_model_name()
+#	var user_name = OS.get_name()
+#
+#	# convert the user datetime into something human-readable
+#	var user_date_as_string =\
+#			str(user_datetime["year"])+\
+#			"/"+str(user_datetime["month"])+\
+#			"/"+str(user_datetime["day"])
+#	# seperate into both date and time
+#	var user_time_as_string =\
+#			str(user_datetime["hour"])+\
+#			":"+str(user_datetime["minute"])+\
+#			":"+str(user_datetime["second"])
+#
+#	print("debug manager readied at: "+\
+#			user_date_as_string+\
+#			" | "+\
+#			user_time_as_string)
+#	print("[user] {name}\n{model}".format({\
+#			"name": user_name,\
+#			"model": user_model_name}))
 
 
 ###############################################################################

@@ -100,11 +100,11 @@ func _ready():
 	if _setup_info_item_container(
 				debug_item_container_default_node) != OK:
 		# report error on failure to initially configure debug item container
-		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
+#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
 		setup_success_state = false
-	else:
-		GlobalDebug.log_success(VERBOSE_LOGGING,\
-				SCRIPT_NAME, "_ready", "itemcon.setup")
+#	else:
+#		GlobalDebug.log_success(VERBOSE_LOGGING,\
+#				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
 	# before connecting next signal, verify previous setups happened as planned
 	if not setup_success_state:
@@ -253,11 +253,11 @@ func _setup_info_item_container(passed_item_container: HBoxContainer):
 			and (label_node_key is Label)\
 			and (label_node_value is Label)
 	if not validation_check:
-		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container", "val")
+#		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container", "val")
 		return ERR_UNCONFIGURED
-	else:
-		GlobalDebug.log_success(VERBOSE_LOGGING,\
-				SCRIPT_NAME, "_setup_info_item_container", "val")
+#	else:
+#		GlobalDebug.log_success(VERBOSE_LOGGING,\
+#				SCRIPT_NAME, "_setup_info_item_container", "val")
 	
 	# assign grouping
 	if not label_node_value.is_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE):
