@@ -2,6 +2,12 @@ extends Node2D
 
 ##############################################################################
 
+#//TODO
+# convert tests to new unit test format
+# some missing tests
+
+##############################################################################
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -17,15 +23,16 @@ func _ready():
 ##############################################################################
 
 
-func test_save(player_save, datacon_dir: String, datacon_file: String):
+func test_save(player_save, full_path: String):
 #	var player_save := GameDataContainer.new()
+
 	var _return_arg =\
-			GlobalData.save_resource(datacon_dir, datacon_file, player_save)
+			GlobalData.save_resource(full_path, player_save)
 
 
-func test_load(datacon_dir: String, datacon_file: String, type_cast = null):
+func test_load(full_path: String, type_cast = null):
 	var save_file = GlobalData.load_resource(
-			datacon_dir+datacon_file,
+			full_path,
 			type_cast
 	)
 	return save_file
@@ -40,7 +47,7 @@ func _manualtest_datamgr_resource():
 #	var get_test_path = GlobalData.DATA_PATHS[GlobalData.DATA_PATH_PREFIXES.USER]
 	get_test_path += "test/test2/test3/test4/"
 	var file_name = "res.tres"
-	var return_arg = GlobalData.save_resource(get_test_path, file_name, Resource.new())
+	var return_arg = GlobalData.save_resource(get_test_path+file_name, Resource.new())
 	if return_arg != OK:
 		print("error ", return_arg)
 	else:
@@ -52,8 +59,7 @@ func _manualtest_datamgr_resource():
 		var _new_res
 		if GlobalData.validate_file(sample_path) == false:
 			_new_res = GlobalData.save_resource(
-				GlobalData.get_dirpath_user(),
-				"resource_new.tres",
+				GlobalData.get_dirpath_user()+"resource_new.tres",
 				Resource.new()
 			)
 		else:
@@ -65,9 +71,10 @@ func _manualtest_datamgr_resource():
 func _manualtest_datamgr_game_data_container():
 	var datacon_dir: String = GlobalData.get_dirpath_user()+"saves/"
 	var datacon_file := "save1.tres"
-	if not GlobalData.validate_file(datacon_dir+datacon_file):
-		test_save(GameDataContainer.new(), datacon_dir, datacon_file)
-	var get_save_res = test_load(datacon_dir, datacon_file, GameDataContainer)
+	var full_path := datacon_dir+datacon_file
+	if not GlobalData.validate_file(full_path):
+		test_save(GameDataContainer.new(), full_path)
+	var get_save_res = test_load(full_path, GameDataContainer)
 	if get_save_res != null:
 		if "get_class" in get_save_res:
 			get_save_res.get_class()
@@ -84,7 +91,7 @@ func _manualtest_datamgr_game_data_container():
 			}))
 			# now save it to file
 			get_save_res.example_float_data = get_float_data+increase
-			test_save(get_save_res, datacon_dir, datacon_file)
+			test_save(get_save_res, datacon_dir+datacon_file)
 
 
 #// can extend this into a unit test by
@@ -138,8 +145,8 @@ func _run_unit_tests(do_tests: bool = false):
 #				_unit_test_save_resource_path_to_user_data(),
 #			"load_invalid_resource_path":
 #				_unit_test_load_invalid_resource_path(),
-			"save_and_load_resource":
-				_unit_test_save_and_load_resource(),
+#			"save_and_load_resource":
+#				_unit_test_save_and_load_resource(),
 			"_unit_test_get_paths_main":
 				_unit_test_get_paths_main(),
 			"_unit_test_load_resources_in_directory":
@@ -147,10 +154,11 @@ func _run_unit_tests(do_tests: bool = false):
 			"_unit_test_save_resource_with_backup":
 				_unit_test_save_resource_with_backup()
 		}
+		print("##########\ntest output\n##########")
 		for test_id in unit_test_record:
 			print("running test {x}, result = {r}".format({
 				"x": test_id,
-				"r": unit_test_record[test_id]
+				"r": "passed" if (unit_test_record[test_id] == true) else "failed"
 			}))
 
 
@@ -159,10 +167,10 @@ func _run_unit_tests(do_tests: bool = false):
 # caution: running this unit test will push a lot of (intentional) errors
 func _unit_test_save_resource_path_to_user_data() -> bool:
 	var get_results = []
-	get_results.append(GlobalData.save_resource("test.txt", "", Resource.new()))
-	get_results.append(GlobalData.save_resource("get_user", "", Resource.new()))
-	get_results.append(GlobalData.save_resource("user:/", "", Resource.new()))
-	get_results.append(GlobalData.save_resource("usr://", "", Resource.new()))
+	get_results.append(GlobalData.save_resource("test.txt", Resource.new()))
+	get_results.append(GlobalData.save_resource("get_user", Resource.new()))
+	get_results.append(GlobalData.save_resource("user:/", Resource.new()))
+	get_results.append(GlobalData.save_resource("usr://", Resource.new()))
 	# every result should be invalid
 	for result in get_results:
 		if result == OK:
@@ -186,8 +194,8 @@ func _unit_test_load_invalid_resource_path() -> bool:
 
 #// TODO - create a resource with a custom value,
 #	save it to disk, then attempt to load it
-func _unit_test_save_and_load_resource():
-	pass
+#func _unit_test_save_and_load_resource():
+#	pass
 
 
 # this test assumes save_resource is working
@@ -207,15 +215,15 @@ func _unit_test_get_paths_main():
 
 	# validating files is important
 	if GlobalData.save_resource(
-			test_save_path, test_file_1, Resource.new()) != OK:
+			test_save_path+test_file_1, Resource.new()) != OK:
 		print("test setup error 1")
 		return
 	if GlobalData.save_resource(
-			test_save_path, test_file_2, Resource.new()) != OK:
+			test_save_path+test_file_2, Resource.new()) != OK:
 		print("test setup error 2")
 		return
 	if GlobalData.save_resource(
-			test_save_path, test_file_3, Resource.new()) != OK:
+			test_save_path+test_file_3, Resource.new()) != OK:
 		print("test setup error 3")
 		return
 	
@@ -361,15 +369,15 @@ func _unit_test_load_resources_in_directory():
 	res_test_file_3.example_float_data = test_value_3
 	# force write the test files
 	if GlobalData.save_resource(
-			test_save_path, path_test_file_1, res_test_file_1) != OK:
+			test_save_path+path_test_file_1, res_test_file_1) != OK:
 		print("_unit_test_load_resources_in_directory test setup error 1")
 		return
 	if GlobalData.save_resource(
-			test_save_path, path_test_file_2, res_test_file_2) != OK:
+			test_save_path+path_test_file_2, res_test_file_2) != OK:
 		print("_unit_test_load_resources_in_directory test setup error 2")
 		return
 	if GlobalData.save_resource(
-			test_save_path, path_test_file_3, res_test_file_3) != OK:
+			test_save_path+path_test_file_3, res_test_file_3) != OK:
 		print("_unit_test_load_resources_in_directory test setup error 3")
 	
 	var test_res_load =\
@@ -410,7 +418,7 @@ func _unit_test_save_resource_with_backup():
 	
 	# save the first file at the example path
 	return_code = GlobalData.save_resource(\
-			test_save_path, path_test_file, save_file_1)
+			test_save_path+path_test_file, save_file_1)
 	# file expected to save succesfully
 	if return_code != OK:
 		print("failed to save file 1")
@@ -418,7 +426,7 @@ func _unit_test_save_resource_with_backup():
 	
 	# save the second file at the SAME example path
 	return_code = GlobalData.save_resource(\
-			test_save_path, path_test_file, save_file_2, true, true, true)
+			test_save_path+path_test_file, save_file_2, true, true, true)
 	# file expected to save succesfully
 	if return_code != OK:
 		print("failed to save file 2")
