@@ -22,13 +22,8 @@ onready var coderef = ErrorCodes.new()
 
 
 # Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
-	_log(self, "tester undef", 0)
-	_log(self, "tester info", 4)
-	_log(self, "tester trace", 3)
-	_log(self, "tester warn", 2)
-	_log(self, "tester err0r", 1)
+#func _ready():
+#	pass # Replace with function body.
 
 
 ##############################################################################
@@ -36,8 +31,24 @@ func _ready():
 # public methods
 
 
-#func example_method():
-#	pass
+# see _log for parameter explanation
+func error(arg_caller: Object, arg_error_code):
+	_log(arg_caller, arg_error_code, 1)
+
+
+# see _log for parameter explanation
+func info(arg_caller: Object, arg_error_code):
+	_log(arg_caller, arg_error_code, 4)
+
+
+# see _log for parameter explanation
+func trace(arg_caller: Object, arg_error_code):
+	_log(arg_caller, arg_error_code, 3)
+
+
+# see _log for parameter explanation
+func warning(arg_caller: Object, arg_error_code):
+	_log(arg_caller, arg_error_code, 2)
 
 
 ##############################################################################
@@ -45,8 +56,8 @@ func _ready():
 # private methods
 
 
-
-
+# main logging method
+# prints to console or pushes a warning/error
 # [param]
 # #1, arg_caller - identifier for method caller, pass as self
 #		will return self.name if name can be found
@@ -57,10 +68,10 @@ func _ready():
 #		refers to the type of log (i.e. ERROR, WARNINGING, TRACE, or INFO),
 #		and influences whether is printed or pushed
 func _log(
-	arg_caller: Object,
-	arg_error_code,
-	arg_log_code: int = 0
-	):
+		arg_caller: Object,
+		arg_error_code,
+		arg_log_code: int = 0
+		):
 	var log_message := ""
 	
 	var caller_id: String = str(arg_caller)
@@ -99,11 +110,9 @@ func _log(
 	print(full_log_string)
 
 
-#func example_method():
-#	pass
-
 ######################
-#PLACEHOLDERS
+# OLD CONTENT BELOW
+# THIS IS DEPRECATED BUT PRESENT IN GLOBALDEBUG
 
 #############
 #
