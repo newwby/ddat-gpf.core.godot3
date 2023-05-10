@@ -532,11 +532,11 @@ func save_resource(
 # debug and release builds. Set this param to true when you require a path
 # to be valid before you continue with an operation.
 func validate_file(
-		arg_given_path: String,
+		arg_file_path: String,
 		arg_assert_path: bool = false
 		) -> bool:
 	# call the private validation method as a file
-	return _validate(arg_given_path, arg_assert_path, true)
+	return _validate(arg_file_path, arg_assert_path, true)
 
 
 # as the method validate_path, but specifically checking for directories
@@ -548,11 +548,11 @@ func validate_file(
 # debug and release builds. Set this param to true when you require a path
 # to be valid before you continue with an operation.
 func validate_directory(
-		arg_given_path: String,
+		arg_directory_path: String,
 		arg_assert_path: bool = false
 		) -> bool:
 	# call the private validation method as a directory
-	return _validate(arg_given_path, arg_assert_path, false)
+	return _validate(arg_directory_path, arg_assert_path, false)
 
 
 
@@ -644,7 +644,7 @@ func _is_resource_extension_valid(arg_resource_file_path: String) -> bool:
 # private method to actually do things; the methods are similar in execution
 # but are different checks, so they are essentially args for this method
 func _validate(
-		arg_given_path: String,
+		arg_path: String,
 		arg_assert_path: bool,
 		arg_is_file: bool
 		) -> bool:
@@ -653,10 +653,10 @@ func _validate(
 	
 	# validate_file call
 	if arg_is_file:
-		_is_valid = _path_check.file_exists(arg_given_path)
+		_is_valid = _path_check.file_exists(arg_path)
 	# validate_directory call
 	elif not arg_is_file:
-		_is_valid = _path_check.dir_exists(arg_given_path)
+		_is_valid = _path_check.dir_exists(arg_path)
 	
 	var log_string = "file" if arg_is_file else "directory"
 	
@@ -665,7 +665,7 @@ func _validate(
 		GlobalDebug.log_error(SCRIPT_NAME,
 				"_validate"+" (from validate_{m})".format({"m": log_string}),
 				"path: [{p}] is not a valid {m}.".format({
-					"p": arg_given_path,
+					"p": arg_path,
 					"m": log_string
 				}))
 	# this method (and validate_path/validate_directory) will stop project
