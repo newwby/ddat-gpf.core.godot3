@@ -67,10 +67,11 @@ class LogRecord:
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
-	error(self, "testing logging please remember to disable this")
-	info(self, "testing logging please remember to disable this")
-	trace(self, "testing logging please remember to disable this")
-	warning(self, "testing logging please remember to disable this")
+	# you didn't remember
+#	error(self, "testing logging please remember to disable this")
+#	info(self, "testing logging please remember to disable this")
+#	trace(self, "testing logging please remember to disable this")
+#	warning(self, "testing logging please remember to disable this")
 
 
 ##############################################################################
