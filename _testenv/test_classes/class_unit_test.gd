@@ -43,7 +43,6 @@ var test_iteration_total: int = 0
 # default to true for tests that do not require preset properties
 func ready_test(property_register: Dictionary) -> void:
 	_set_properties(property_register)
-	test_iteration_total += 1
 	is_test_readied = true
 
 
@@ -53,6 +52,7 @@ func ready_test(property_register: Dictionary) -> void:
 # test_iteration_maximum,  nothing will happen
 func start_test() -> bool:
 	is_test_readied = false
+	test_iteration_total += 1
 	return true
 
 
