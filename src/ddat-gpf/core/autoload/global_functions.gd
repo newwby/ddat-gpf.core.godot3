@@ -95,6 +95,20 @@ func confirm_signal(
 	return signal_return_state
 
 
+# allows configuring a target object's properties in a single call
+func multiset_properties(arg_target: Object, arg_property_dict: Dictionary):
+	if arg_property_dict.empty():
+		return
+	for property in arg_property_dict.keys():
+		if typeof(property) != TYPE_STRING:
+			GlobalLog.warning(self, [property, "invalid type"])
+		if property in arg_target:
+			# If the given value's type doesn't match no warning is logged.
+			arg_target.set(property, arg_property_dict[property])
+		else:
+			GlobalLog.warning(self, [property, " not found"])
+
+
 # method to move a node from beneath one node to another
 # if not already inside tree (parent not found) will skip removing step
 # will emit signal with node when finished, does not return as return
@@ -127,7 +141,7 @@ func reparent_node(arg_target_node: Node, arg_new_parent: Node) -> void:
 		emit_signal("node_reparented", arg_target_node)
 	else:
 		emit_signal("node_reparented", null)
-		
+
 
 
 ##############################################################################
