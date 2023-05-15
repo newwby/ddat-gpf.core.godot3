@@ -94,7 +94,7 @@ func build_path(
 			get_fixed_data_path = DATA_PATHS[arg_data_path_key]
 			full_data_path = full_data_path + get_fixed_data_path
 	else:
-		GlobalDebug.log_error(SCRIPT_NAME, "build_path",
+		GlobalLog.error(self,
 				"arg_data_path_key {k} not found".format({"k": arg_data_path_key}))
 		return ""
 	
@@ -135,7 +135,7 @@ func create_directory(
 	
 	# if ok, return, else log and return error
 	if return_code != OK:
-		GlobalDebug.log_error(SCRIPT_NAME, "create_directory",
+		GlobalLog.error(self,
 				"failed to create directory at {p}".format({
 					"p": arg_absolute_path
 				}))
@@ -244,8 +244,7 @@ func get_file_paths(
 						add_found_file = false
 						# successful validation to exempt a file
 						#// need a minor logging method added
-						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
-								"get_file_paths",
+						GlobalLog.info(self,
 								"prefix {p} not in file name {f}".format({
 									"p": arg_req_file_prefix,
 									"f": file_name
@@ -256,8 +255,7 @@ func get_file_paths(
 						add_found_file = false
 						# successful validation to exempt a file
 						#// need a minor logging method added
-						GlobalDebug.log_success(verbose_logging, SCRIPT_NAME,
-								"get_file_paths",
+						GlobalLog.info(self,
 								"suffix {s} not in file name {f}".format({
 									"s": arg_req_file_suffix,
 									"f": file_name
@@ -270,9 +268,7 @@ func get_file_paths(
 								add_found_file = false
 								# successful validation to exempt a file
 								#// need a minor logging method added
-								GlobalDebug.log_success(verbose_logging,
-										SCRIPT_NAME,
-										"get_file_paths",
+								GlobalLog.info(self,
 										"bad str {s} in file name {f}".format({
 											"s": force_exclude,
 											"f": file_name
@@ -285,9 +281,7 @@ func get_file_paths(
 								add_found_file = false
 								# successful validation to exempt a file
 								#// need a minor logging method added
-								GlobalDebug.log_success(verbose_logging,
-										SCRIPT_NAME,
-										"get_file_paths",
+								GlobalLog.info(self,
 										"no str {s} in file name {f}".format({
 											"s": force_include,
 											"f": file_name
@@ -331,7 +325,7 @@ func load_resource(
 	# check path is valid before loading resource
 	var is_path_valid = validate_file(arg_file_path)
 	if not is_path_valid:
-		GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+		GlobalLog.error(self,
 				"attempted to load non-existent resource at {p}".format({
 					"p": arg_file_path
 				}))
@@ -344,7 +338,7 @@ func load_resource(
 	
 	# if resource wasn't succesfully loaded (check before type validation)
 	if new_resource == null:
-		GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+		GlobalLog.error(self,
 				"resource not loaded successfully, is null")
 		return null
 	
@@ -354,12 +348,12 @@ func load_resource(
 		if not (new_resource is arg_type_cast):
 			# discard value to ensure reference count update
 			new_resource = null
-			GlobalDebug.log_error(SCRIPT_NAME, "load_resource",
+			GlobalLog.error(self,
 					"resource not loaded succesfully, invalid type")
 			return null
 	
 	# if everything is okay, return the loaded resource
-	GlobalDebug.log_success(verbose_logging, SCRIPT_NAME, "load_resource",
+	GlobalLog.info(self,
 			"resource {res} validated and returned".format({
 				"res": new_resource
 			}))
@@ -466,7 +460,7 @@ func save_resource(
 	# validate write extension is valid
 	if not _is_resource_extension_valid(arg_file_path):
 		# _is_resource_extension_valid already includes logging, redundant
-#		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+#		GlobalLog.error(self,
 #				"resource extension invalid")
 		return ERR_FILE_CANT_WRITE
 	
@@ -569,7 +563,7 @@ func _is_write_operation_directory_valid(
 	# resources can only be saved to paths within the user data folder.
 	# user data path is "user://"
 	if arg_directory_path.substr(0, 7) != DATA_PATHS[DATA_PATH_PREFIXES.USER]:
-		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+		GlobalLog.error(self,
 				"{p} is not user_data path".format({"p": arg_directory_path}))
 		return ERR_FILE_BAD_PATH
 	
@@ -577,7 +571,7 @@ func _is_write_operation_directory_valid(
 	if not validate_directory(arg_directory_path):
 		# if not force writing, and directory doesn't exist, return invalid
 		if not arg_force_write_directory:
-			GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+			GlobalLog.error(self,
 					"directory at {p} does not exist".format({
 						"p": arg_directory_path}))
 			return ERR_FILE_BAD_PATH
@@ -585,7 +579,7 @@ func _is_write_operation_directory_valid(
 		elif arg_force_write_directory:
 			var attempt_write_dir = create_directory(arg_directory_path)
 			if attempt_write_dir != OK:
-				GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+				GlobalLog.error(self,
 						"failed attempt to write directory at {p}".format({
 							"p": arg_directory_path
 						}))
@@ -609,7 +603,7 @@ func _is_write_operation_path_valid(
 	
 	# if file exists and we don't have permission to overwrite
 	if (not arg_force_write_file and _is_path_valid):
-		GlobalDebug.log_error(SCRIPT_NAME, "save_resource",
+		GlobalLog.error(self,
 				"file at {p} already exists".format({
 					"p": arg_file_path}))
 		return ERR_FILE_NO_PERMISSION
@@ -632,7 +626,7 @@ func _is_resource_extension_valid(arg_resource_file_path: String) -> bool:
 	# comparison bool value
 	var is_valid_extension = (extension == RESOURCE_FILE_EXTENSION)
 	if not is_valid_extension:
-		GlobalDebug.log_error(SCRIPT_NAME, "_is_resource_extension_valid",
+		GlobalLog.error(self,
 				"invalid extension, expected {c} but got {e}".format({
 					"c": RESOURCE_FILE_EXTENSION,
 					"e": extension
@@ -662,8 +656,8 @@ func _validate(
 	
 	if arg_assert_path\
 	and not _is_valid:
-		GlobalDebug.log_error(SCRIPT_NAME,
-				"_validate"+" (from validate_{m})".format({"m": log_string}),
+		GlobalLog.error(self,
+				"_validate"+" (from validate_{m}) ".format({"m": log_string})+\
 				"path: [{p}] is not a valid {m}.".format({
 					"p": arg_path,
 					"m": log_string

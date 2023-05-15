@@ -153,7 +153,7 @@ func add_dev_command(
 # warning-ignore:return_value_discarded
 				if caller.connect("tree_exiting", self, "delete_dev_command",
 					[signal_id, caller, caller_method]) != OK:
-						GlobalDebug.log_error(SCRIPT_NAME, "add_dev_command",
+						GlobalLog.warning(self,
 								"command not added, error {1} {2} {3}".format({
 									"1": signal_id,
 									"2": caller,
@@ -314,6 +314,6 @@ func log_test(
 		return compare_outcomes
 	
 	if not is_test_valid:
-		GlobalDebug.log_error(SCRIPT_NAME, "log_test",
+		GlobalLog.warning(self,
 				"invalid test, is not valid funcref or does not return bool")
 

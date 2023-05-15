@@ -89,22 +89,13 @@ func _ready():
 #	if get_viewport().connect("size_changed",
 #			self, "_on_viewport_resized_resize_info_overlay") != OK:
 #		# report error on failure to get signal
-#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "view.connect")
 #		setup_success_state = false
-#	else:
-#		GlobalDebug.log_success(VERBOSE_LOGGING,\
-#				SCRIPT_NAME, "_ready", "view.connect")
 	
 	# configure the default/template item container
 	# passed arg is default container (is child, should be readied) node ref
 	if _setup_info_item_container(
 				debug_item_container_default_node) != OK:
-		# report error on failure to initially configure debug item container
-#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "itemcon.setup")
 		setup_success_state = false
-#	else:
-#		GlobalDebug.log_success(VERBOSE_LOGGING,\
-#				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
 	# before connecting next signal, verify previous setups happened as planned
 	if not setup_success_state:
@@ -115,11 +106,6 @@ func _ready():
 	if GlobalDebug.connect("update_debug_overlay_item",
 			self, "_on_update_debug_overlay_item_notify_container") != OK:
 		pass
-		# report error on failure to link debug info voerlay to globalDebug
-#		GlobalDebug.log_error(SCRIPT_NAME, "_ready", "gdbg.connect")
-#	else:
-#		GlobalDebug.log_success(VERBOSE_LOGGING,\
-#				SCRIPT_NAME, "_ready", "itemcon.setup")
 	
 	# automatically show on debug builds
 	self.visible = (OS.is_debug_build())
@@ -151,15 +137,14 @@ func create_debug_item_container(
 	# check valid before duplicating
 	if debug_item_container_default_node == null:
 		# this should not happen
-		GlobalDebug.log_error(SCRIPT_NAME, "_create_debug_item_container",
+		GlobalLog.error(self,
 				"default_item_container.not_found")
 	else:
 		# add to scene tree beneath info column node
 		# verify there's a valid debug info column then add the new container
 		if debug_info_column_node != null:
 			# log progress if verbose logging
-			GlobalDebug.log_success(VERBOSE_LOGGING,\
-					SCRIPT_NAME, "_ready", "newitemcon.setup.step1")
+			GlobalLog.info(self, "newitemcon.setup.step1")
 			# we wait to duplicate until we confirm there's a valid parent node
 			# else we'll potentially end up with a memory leak
 			new_debug_item_container_node =\
@@ -175,11 +160,10 @@ func create_debug_item_container(
 			# this also doublechecks the tree structure of the duplicate node
 			if _setup_info_item_container(new_debug_item_container_node)!= OK:
 				# report error on failure to configure new item container
-				GlobalDebug.log_error(SCRIPT_NAME, "_ready", "newitemcon.setup")
+				GlobalLog.error(self, "newitemcon.setupfailure ")
 			else:
 				# log progress if verbose logging
-				GlobalDebug.log_success(VERBOSE_LOGGING,\
-						SCRIPT_NAME, "_ready", "newitemcon.setup.step2")
+				GlobalLog.info(self, "newitemcon.setup.step2")
 				# new item container is ready, we can now allow it to update
 				# register the new item container in the node ref dictionary
 				debug_item_container_node_refs[debug_item_key] =\
@@ -199,7 +183,7 @@ func create_debug_item_container(
 		# if debug item column node was not readied properly (is null)
 		# then there's no parent to add the new item container to
 		else:
-			GlobalDebug.log_error(SCRIPT_NAME, "_create_debug_item_container",
+			GlobalLog.warning(self,
 				"debug_info_column_node.not_found")
 	
 	return new_debug_item_container_node
@@ -226,11 +210,10 @@ func update_existing_debug_item_value(
 		if value_label_node is Label:
 			value_label_node.text = debug_item_new_value
 		else:
-			GlobalDebug.log_error(SCRIPT_NAME,
-					"_update_existing_debug_item_value",
+			GlobalLog.warning(self,
 					"itemcon_value_is_not_label")
 	else:
-		GlobalDebug.log_error(SCRIPT_NAME, "_update_existing_debug_item_value",
+		GlobalLog.warning(self,
 				"passed_item_container.not_in_tree")
 		return
 
@@ -254,11 +237,7 @@ func _setup_info_item_container(passed_item_container: HBoxContainer):
 			and (label_node_key is Label)\
 			and (label_node_value is Label)
 	if not validation_check:
-#		GlobalDebug.log_error(SCRIPT_NAME, "_setup_info_item_container", "val")
 		return ERR_UNCONFIGURED
-#	else:
-#		GlobalDebug.log_success(VERBOSE_LOGGING,\
-#				SCRIPT_NAME, "_setup_info_item_container", "val")
 	
 	# assign grouping
 	if not label_node_value.is_in_group(GROUP_STRING_DEBUG_ITEM_LABEL_VALUE):
@@ -297,8 +276,7 @@ func _on_update_debug_overlay_item_notify_container(\
 			if new_debug_item_container != null:
 				get_debug_item_container = new_debug_item_container
 			else:
-				GlobalDebug.log_error(SCRIPT_NAME,
-					"_on_update_debug_overlay_item_notify_container",
+				GlobalLog.error(self,
 					"new_debug_item_container.not_found")
 				return
 		else:
