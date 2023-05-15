@@ -9,6 +9,10 @@ class_name GameGlobal
 #	1) Avoid duplication of code between globals.
 #	2) Allow configuration options to be easily set on all globals.
 #
+
+#//TODO
+# remove preload or rework agnostic of the runtime framework
+
 ##############################################################################
 
 # variants go here
@@ -21,6 +25,8 @@ var verbose_logging := false
 
 func _ready():
 	_preload()
+	# globals shouldn't logspam
+	GlobalLog.change_log_permissions(self, false)
 
 
 ###############################################################################
