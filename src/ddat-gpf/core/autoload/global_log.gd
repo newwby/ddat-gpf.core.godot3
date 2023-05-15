@@ -30,6 +30,11 @@ var record_logs := true
 # nothing is recorded if record_logs is set to false
 var log_register = {}
 
+# use to enable or disable log permissions on a per script basis
+# call change_log_permissions to modify
+# if an object isn't in log_permissions their permissions default to allowed
+var log_permissions = {}
+
 onready var coderef = ErrorCodes.new()
 
 ##############################################################################
@@ -66,8 +71,8 @@ class LogRecord:
 
 
 # Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
+#func _ready():
+#	pass # Replace with function body.
 	# you didn't remember
 #	error(self, "testing logging please remember to disable this")
 #	info(self, "testing logging please remember to disable this")
@@ -78,6 +83,15 @@ func _ready():
 ##############################################################################
 
 # public methods
+
+
+# method allows blocking specific scripts from making log calls
+# (useful for scripts whose debugging logs spam the console)
+# [param]
+# arg_caller should be the object you wish to allow or disallow logging from
+# arg_permission is whether to allow (if true) or disallow (if false)
+func change_log_permissions(arg_caller: Object, arg_permission: bool):
+	log_permissions[arg_caller] = arg_permission
 
 
 # see _log for parameter explanation
@@ -104,10 +118,24 @@ func warning(arg_caller: Object, arg_error_message):
 
 # private methods
 
+
+# get whether an object is allowed to make logging calls
+# see 'change_log_permissions' method
+# if an object isn't in log_permissions their permissions default to allowed
+func _is_caller_permitted(arg_log_caller: Object) -> bool:
+	var permission_state
+	if arg_log_caller in log_permissions.keys():
+		permission_state = log_permissions[arg_log_caller]
+		if typeof(permission_state) == TYPE_BOOL:
+			return permission_state
+	# catchall
+	return true
+
+
 # method to check log is allowed (by ALLOW_ consts) before it goes ahead
 # if passed an invalid log code (i.e. not in the enum), will return false
 # if passed 'LOG_CODES.UNDEFINED' will return true
-func _can_log(arg_log_code: int = 0) -> bool:
+func _is_log_type_allowed(arg_log_code: int = 0) -> bool:
 	match arg_log_code:
 		LOG_CODES.UNDEFINED:
 			return true
@@ -163,15 +191,19 @@ func _log(
 				"message": str(full_error_message)
 				})
 	
-	var log_record: LogRecord = null
 	# if recording all logs, create an object to remember it
+	# logs are recorded whether they log to debugger/console or not
+	var log_record: LogRecord = null
 	if record_logs:
 		log_record = LogRecord.new(arg_caller, log_timestamp, log_code_id,
 				log_code_name, full_error_message, full_log_string)
 		_update_log_register(arg_caller, log_record)
 	
-	# check the log type is valid (see ALLOW_ consts/_can_log method)
-	if not _can_log(arg_log_code):
+	# check the log type is valid (see ALLOW_ consts/_is_log_type_allowed
+	# method and log_permission dict)
+	if not _is_log_type_allowed(arg_log_code):
+		return
+	if not _is_caller_permitted(arg_caller):
 		return
 	
 	if arg_log_code == LOG_CODES.ERROR:
@@ -192,7 +224,6 @@ func _log(
 	print(full_log_string)
 	if log_record != null:
 		log_record.logged_to_console = true
-		
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
