@@ -41,6 +41,7 @@ class LogRecord:
 	var log_code_id: int
 	var log_code_name: String
 	var log_message: String
+	var logged_to_console: bool = false
 	var full_log_string: String
 	
 	func _init(
@@ -138,10 +139,6 @@ func _log(
 		arg_error_message,
 		arg_log_code: int = 0
 		):
-	# check the log type is valid (see ALLOW_ consts/_can_log method)
-	if not _can_log(arg_log_code):
-		return
-	
 	var caller_id: String = str(arg_caller)
 #	if "name" in arg_caller:
 #		caller_id += ": "+arg_caller.name
@@ -166,13 +163,16 @@ func _log(
 				"message": str(full_error_message)
 				})
 	
+	var log_record: LogRecord = null
 	# if recording all logs, create an object to remember it
 	if record_logs:
-		_update_log_register(
-			arg_caller,
-			LogRecord.new(arg_caller, log_timestamp, log_code_id,
-					log_code_name, full_error_message, full_log_string)
-			)
+		log_record = LogRecord.new(arg_caller, log_timestamp, log_code_id,
+				log_code_name, full_error_message, full_log_string)
+		_update_log_register(arg_caller, log_record)
+	
+	# check the log type is valid (see ALLOW_ consts/_can_log method)
+	if not _can_log(arg_log_code):
+		return
 	
 	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
@@ -190,6 +190,9 @@ func _log(
 	# console output
 	# only reachable by errors/warnings if print_to_console consts are set
 	print(full_log_string)
+	if log_record != null:
+		log_record.logged_to_console = true
+		
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
