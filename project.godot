@@ -28,12 +28,18 @@ _global_script_classes=[ {
 "class": "UnitTest",
 "language": "GDScript",
 "path": "res://_testenv/test_classes/class_unit_test.gd"
+}, {
+"base": "UnitTest",
+"class": "UnitTestGetDirPaths",
+"language": "GDScript",
+"path": "res://_testenv/core_global_data/test_get_dir_paths.gd"
 } ]
 _global_script_class_icons={
 "ErrorCodes": "",
 "GameDataContainer": "",
 "GameGlobal": "",
-"UnitTest": ""
+"UnitTest": "",
+"UnitTestGetDirPaths": ""
 }
 
 [application]

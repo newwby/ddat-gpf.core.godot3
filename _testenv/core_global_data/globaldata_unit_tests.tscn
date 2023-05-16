@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://_testenv/core_global_data/globaldata_unit_tests.gd" type="Script" id=1]
+[ext_resource path="res://_testenv/core_global_data/test_get_dir_paths.gd" type="Script" id=2]
+
+[node name="globalData_testRoot" type="Node2D"]
+script = ExtResource( 1 )
+
+[node name="UnitTestGetDirPaths" type="Node" parent="."]
+script = ExtResource( 2 )
