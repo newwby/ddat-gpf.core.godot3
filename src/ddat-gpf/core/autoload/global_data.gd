@@ -562,22 +562,6 @@ func save_resource(
 	return return_code
 
 
-# as the method validate_path, but specifically checking for files existing
-# useful for one liner conditionals and built-in error logging
-# (saves creating a file/directory object manually)
-# [method params as follows]
-##1, path, is the file path to validate
-##2, arg_assert_path, forces an assert in debug builds and error logging in both
-# debug and release builds. Set this param to true when you require a path
-# to be valid before you continue with an operation.
-func validate_file(
-		arg_file_path: String,
-		arg_assert_path: bool = false
-		) -> bool:
-	# call the private validation method as a file
-	return _validate(arg_file_path, arg_assert_path, true)
-
-
 # as the method validate_path, but specifically checking for directories
 # useful for one liner conditionals and built-in error logging
 # (saves creating a file/directory object manually)
@@ -592,6 +576,22 @@ func validate_directory(
 		) -> bool:
 	# call the private validation method as a directory
 	return _validate(arg_directory_path, arg_assert_path, false)
+
+
+# as the method validate_path, but specifically checking for files existing
+# useful for one liner conditionals and built-in error logging
+# (saves creating a file/directory object manually)
+# [method params as follows]
+##1, path, is the file path to validate
+##2, arg_assert_path, forces an assert in debug builds and error logging in both
+# debug and release builds. Set this param to true when you require a path
+# to be valid before you continue with an operation.
+func validate_file(
+		arg_file_path: String,
+		arg_assert_path: bool = false
+		) -> bool:
+	# call the private validation method as a file
+	return _validate(arg_file_path, arg_assert_path, true)
 
 
 
