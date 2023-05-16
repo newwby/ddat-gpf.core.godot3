@@ -199,6 +199,51 @@ func get_dirpath_user() -> String:
 	return DATA_PATHS[DATA_PATH_PREFIXES.USER]
 
 
+# method returns paths for every directory inside a directory
+# can search recursively, returning all nested directories
+# doesn't include the directory path argument in output
+# [params]
+# #1, arg_directory_path - path to top-level directory
+# #2, arg_get_recursively - whether to get directories from all subdirectories
+func get_dir_paths(
+		arg_directory_path: String,
+		arg_get_recursively: bool = false) -> Array:
+	var directories_inside = []
+	var dir_access := Directory.new()
+	var invalid_directory_errorstring := "{0} is invalid for {1}".format([
+			str(arg_directory_path), "get_dir_paths"])
+	
+	# err handling
+	if dir_access.open(arg_directory_path) != OK:
+		GlobalLog.error(self, invalid_directory_errorstring)
+		return directories_inside
+	if dir_access.list_dir_begin(true) != OK:
+		GlobalLog.error(self, invalid_directory_errorstring)
+		return directories_inside
+	
+	# otherwise assume OK
+	# searching given directory subdirectories
+	var dir_name := dir_access.get_next()
+	var path_to_current_dir = ""
+	while dir_name != "":
+		if dir_access.current_is_dir():
+			path_to_current_dir = dir_access.get_current_dir()+"/"+dir_name
+			GlobalLog.trace(self, "at path: "+str(path_to_current_dir))
+			directories_inside.append(path_to_current_dir)
+		dir_name = dir_access.get_next()
+	# close before reading subdirectories
+	dir_access.list_dir_end()
+	
+	# search found directories to see if they have directories inside
+	if arg_get_recursively and not directories_inside.empty():
+		for subdirectory_path in directories_inside:
+			directories_inside.append_array(\
+					get_dir_paths(subdirectory_path))
+	
+	return directories_inside
+
+
+
 # This method gets the file path for every file in a directory and returns
 # those file paths within an array. Caller can then use those file paths
 # to query file types or load files.
