@@ -18,8 +18,9 @@ extends UnitTest
 
 # shadowed method
 # if your test needs properties set or things done beforehand, add them here
-func ready_test(property_register: Dictionary) -> void:
-	.ready_test(property_register)
+func ready_test() -> void:
+	# is_test_readied = true
+	.ready_test()
 
 
 ##############################################################################
