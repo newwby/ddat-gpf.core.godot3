@@ -49,6 +49,7 @@ class LogRecord:
 	var log_code_name: String
 	var log_message: String
 	var logged_to_console: bool = false
+	var saved_to_disk: bool = false
 	var full_log_string: String
 	
 	func _init(
@@ -285,8 +286,10 @@ func _save_all_logs_to_disk():
 		if typeof(get_log_list) == TYPE_ARRAY:
 			for log_item in get_log_list:
 				if log_item is LogRecord:
-					log_string += str(log_item.full_log_string)
-					log_string += "\n"
+					if not log_item.saved_to_disk:
+						log_string += str(log_item.full_log_string)
+						log_string += "\n"
+						log_item.saved_to_disk = true
 		_save_logstring_to_disk(target_directory, str(log_owner), log_string)
 
 
