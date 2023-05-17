@@ -74,7 +74,8 @@ func _invalid_ext_save_attempt_tests() -> bool:
 func _valid_ext_save_attempt_tests() -> bool:
 	var test_state := true
 	for file_path in ext_save_attempt_file_paths:
-		GlobalData.save_resource(file_path, GameDataContainer.new())
+		if GlobalData.save_resource(file_path, GameDataContainer.new()) != OK:
+			test_state = false
 		if not GlobalData.validate_file(file_path):
 			test_state = false
 	return test_state
