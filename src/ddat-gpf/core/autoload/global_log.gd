@@ -300,7 +300,9 @@ func _save_logstring_to_disk(
 			arg_logstring: String):
 	if not GlobalData.validate_directory(arg_target_directory):
 #		print("writing ", target_directory)
-		GlobalData.create_directory(arg_target_directory, true)
+		if GlobalData.create_directory(arg_target_directory, true) != OK:
+			GlobalLog.error(self, "could not create logging directory")
+			return
 	#
 	var file_name = (str(arg_log_caller)+".txt").to_lower()
 	if not file_name.is_valid_filename():
