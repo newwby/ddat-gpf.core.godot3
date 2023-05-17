@@ -6,6 +6,8 @@ extends GameGlobal
 
 enum LOG_CODES {UNDEFINED, ERROR, WARNING, TRACE, INFO}
 
+const USER_LOG_DIRECTORY = "/logs/gpf_logger"
+
 # if in debug mode, errors will force a false assertion and stop the project
 const DEBUGGER_ASSERTS_ERRORS := false
 
@@ -74,6 +76,9 @@ class LogRecord:
 func _ready():
 	change_log_permissions(self, true)
 	_logger_startup()
+#	print("ts ", )
+	GlobalLog.trace(self, "test log")
+	_save_all_logs_to_disk()
 
 
 ##############################################################################
@@ -263,6 +268,59 @@ func _logger_startup():
 				user_name+" "+user_model_name, datetime_string
 			])
 	GlobalLog.info(self, startup_log_string)
+
+
+func _save_all_logs_to_disk():
+	var log_directory_name =\
+			Time.get_datetime_string_from_system(false, false).\
+			replace("T", "_").replace("-", "_").replace(":", "_")
+	var base_dir = GlobalData.get_dirpath_user()+"/"+USER_LOG_DIRECTORY
+	var target_directory = base_dir+"/"+log_directory_name
+	var log_string = ""
+	var get_log_list := []
+	for log_owner in log_register.keys():
+		log_string = ""
+		get_log_list = []
+		get_log_list = log_register[log_owner]
+		if typeof(get_log_list) == TYPE_ARRAY:
+			for log_item in get_log_list:
+				if log_item is LogRecord:
+					log_string += str(log_item.full_log_string)
+					log_string += "\n"
+		_save_logstring_to_disk(target_directory, str(log_owner), log_string)
+
+
+#//TODO move this save text function to globalData
+func _save_logstring_to_disk(
+			arg_target_directory: String,
+			arg_log_caller: String,
+			arg_logstring: String):
+	if not GlobalData.validate_directory(arg_target_directory):
+#		print("writing ", target_directory)
+		GlobalData.create_directory(arg_target_directory, true)
+	#
+	var file_name = (str(arg_log_caller)+".txt").to_lower()
+	if not file_name.is_valid_filename():
+		#//TODO move strip invalid filename chars method to globalData
+		file_name = file_name.replace(":", "_")
+		file_name = file_name.replace("\"", "_")
+		file_name = file_name.replace("\\", "_")
+		file_name = file_name.replace("/", "_")
+		file_name = file_name.replace("?", "_")
+		file_name = file_name.replace("*", "_")
+		file_name = file_name.replace("|", "_")
+		file_name = file_name.replace("%", "_")
+		file_name = file_name.replace("<", "_")
+		file_name = file_name.replace(">", "_")
+	
+	if file_name.is_valid_filename():
+		var full_file_path = str(arg_target_directory+"/"+file_name).to_lower()
+		var newfile = File.new()
+		newfile.open(full_file_path, File.WRITE)
+		newfile.store_string(arg_logstring)
+		newfile.close()
+	else:
+		GlobalLog.warning(self, "name '"+str(file_name)+"' invalid")
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
