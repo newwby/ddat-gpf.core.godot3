@@ -73,6 +73,18 @@ const DATA_PATHS := {
 # enable verbose logging here if required
 #func _ready():
 #	verbose_logging = true
+#
+#	# example string method behaviour
+#	var file_path = "res://src/ddat-gpf/core/autoload/global_debug.gd"
+#	var get_base_dir = file_path.get_base_dir()
+#	var get_basename = file_path.get_basename()
+#	var get_extension = file_path.get_extension()
+#	var get_file = file_path.get_file()
+#	print("{0}: {1}".format(["file_path", file_path]))
+#	print("{0}: {1}".format(["get_base_dir", get_base_dir]))
+#	print("{0}: {1}".format(["get_basename", get_basename]))
+#	print("{0}: {1}".format(["get_extension", get_extension]))
+#	print("{0}: {1}".format(["get_file", get_file]))
 
 
 ##############################################################################
@@ -486,40 +498,20 @@ func save_resource(
 		arg_force_write_directory: bool = true,
 		arg_increment_backup : bool = false
 		) -> int:
-	# error code (or OK) for returning
-	var return_code: int
 	# split directory path and file path
-	var directory_path = arg_file_path.split("/")
-	var file_and_ext = directory_path[-1]
-	directory_path.remove(directory_path.size()-1)
-	directory_path = directory_path.join("/")
-#	print("directory_path = ", directory_path)
-#	print("file_and_ext = ", file_and_ext)
-#	print((directory_path+"/"+file_and_ext), " vs ", arg_file_path)
-#	assert((directory_path+"/"+file_and_ext) == arg_file_path)
+	var directory_path = arg_file_path.get_base_dir()
+	var file_and_ext = arg_file_path.get_file()
 	if (directory_path+"/"+file_and_ext) != arg_file_path:
 		return ERR_FILE_BAD_PATH
 	
-	
-	# next up are methods to validate the write operation. For each;
-	# if OK (0), continue function. If an error code (1+), return the error.
-	# We're using error codes rather than bool for more informative debugging.
-	
-	# validate directory path
-	return_code = _is_write_operation_directory_valid(
-			directory_path,
-			arg_force_write_directory
-			)
+	var return_code: int = OK
+	# check can write
+	return_code = _is_write_operation_valid(
+			arg_file_path, arg_force_write_directory, arg_force_write_file)
 	if return_code != OK:
+		GlobalLog.error(self, "invalid write operation at"+str(arg_file_path))
 		return return_code
-	
-	# validate file path
-	return_code = _is_write_operation_path_valid(
-			arg_file_path,
-			arg_force_write_file
-			)
-	if return_code != OK:
-		return return_code
+		
 	
 	# validate write extension is valid
 	if not _is_resource_extension_valid(arg_file_path):
@@ -673,6 +665,31 @@ func _is_write_operation_path_valid(
 		return ERR_FILE_NO_PERMISSION
 	# if all was successful,
 	return OK
+
+
+func _is_write_operation_valid(
+			arg_file_path: String,
+			arg_force_write_directory: bool,
+			arg_force_write_file: bool
+			) -> int:
+	var return_code = OK
+	var directory_path = arg_file_path.get_base_dir()
+	# validate directory path
+	return_code = _is_write_operation_directory_valid(
+			directory_path,
+			arg_force_write_directory
+			)
+	if return_code != OK:
+		return return_code
+	# validate file path
+	return_code = _is_write_operation_path_valid(
+			arg_file_path,
+			arg_force_write_file
+			)
+	if return_code != OK:
+		return return_code
+	# catchall, success exit point
+	return return_code
 
 
 # used to validate that file paths are for valid resource extensions
