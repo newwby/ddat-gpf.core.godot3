@@ -298,10 +298,12 @@ func _save_all_logs_to_disk():
 		log_string = ""
 		get_log_list = []
 		get_log_list = log_register[log_owner]
+		# log_register values are arrays of logRecords (key = log caller)
 		if typeof(get_log_list) == TYPE_ARRAY:
 			for log_item in get_log_list:
 				if log_item is LogRecord:
-					if not log_item.saved_to_disk:
+					if not log_item.saved_to_disk\
+					and log_item.logged_to_console:
 						log_string += str(log_item.full_log_string)
 						log_string += "\n"
 						log_item.saved_to_disk = true
@@ -313,13 +315,13 @@ func _save_logstring_to_disk(
 			arg_target_directory: String,
 			arg_log_caller: String,
 			arg_logstring: String):
+	# force write logging directory if doesn't exist
 	if not GlobalData.validate_directory(arg_target_directory):
-#		print("writing ", target_directory)
 		if GlobalData.create_directory(arg_target_directory, true) != OK:
 			GlobalLog.error(self, "could not create logging directory")
 			return
 	#
-	var file_name = (str(arg_log_caller)+".txt").to_lower()
+	var file_name = (str(arg_log_caller)+".txt")
 	if not file_name.is_valid_filename():
 		file_name = GlobalData.clean_file_name(file_name)
 	
