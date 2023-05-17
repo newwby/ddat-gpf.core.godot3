@@ -22,6 +22,9 @@ const ALLOW_INFO := true
 const ALLOW_TRACE := true
 const ALLOW_WARNING := true
 
+# stored logs (see log_register) will be saved to disk on project close
+var on_exit_log_to_disk := true
+
 # if set true, all logs will be saved and remembered during the run session
 # if set false logs will not be remembered (though they will still be
 # output to console and consequently the user log files)
@@ -75,11 +78,23 @@ class LogRecord:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# logger prevents automatic quit on notification
+	get_tree().set_auto_accept_quit(false)
+	# logger is always allowed to log about self
+	# (parent gameGlobal class, for ddat-gpf singletons, disables by default)
 	change_log_permissions(self, true)
 	_logger_startup()
-#	print("ts ", )
-	GlobalLog.trace(self, "test log")
-	_save_all_logs_to_disk()
+#	GlobalLog.trace(self, "test log")
+
+
+# hijack the exit process to force save logs to disk on quit
+# to quit, use: get_tree().notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
+# get_tree().quit() will skip this behaviour
+func _notification(what):
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		if on_exit_log_to_disk:
+			_save_all_logs_to_disk()
+		get_tree().quit()
 
 
 ##############################################################################
