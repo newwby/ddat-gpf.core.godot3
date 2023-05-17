@@ -3,7 +3,7 @@ extends Node2D
 onready var unit_test_get_dir_paths = $UnitTestGetDirPaths
 
 func _ready():
-	unit_test_get_dir_paths.ready_test({})
+	unit_test_get_dir_paths.ready_test()
 	unit_test_get_dir_paths.start_test()
 
 #	var test_path = "res://def/dev/"
