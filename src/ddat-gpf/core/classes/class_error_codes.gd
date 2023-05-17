@@ -12,10 +12,11 @@ var user := {
 
 # ddat-gpf codes that build off of the globalScope error codes
 var expanded := {
-	
+	49 : "TEST_NOT_READIED"
 }
 
 # the core error codes - for a string lookup of their name
+# missing godot 4.0 error_string method
 var core := {
 	1: "FAILED",
 	2: "ERR_UNAVAILABLE",
