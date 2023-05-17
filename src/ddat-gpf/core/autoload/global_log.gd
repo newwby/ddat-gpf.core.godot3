@@ -71,13 +71,9 @@ class LogRecord:
 
 
 # Called when the node enters the scene tree for the first time.
-#func _ready():
-#	pass # Replace with function body.
-	# you didn't remember
-#	error(self, "testing logging please remember to disable this")
-#	info(self, "testing logging please remember to disable this")
-#	trace(self, "testing logging please remember to disable this")
-#	warning(self, "testing logging please remember to disable this")
+func _ready():
+	change_log_permissions(self, true)
+	_logger_startup()
 
 
 ##############################################################################
@@ -224,6 +220,32 @@ func _log(
 	print(full_log_string)
 	if log_record != null:
 		log_record.logged_to_console = true
+
+
+func _logger_startup():
+	# get basic information on the user
+	var user_datetime = OS.get_datetime()
+	
+	# convert the user datetime into something human-readable
+	var user_date_as_string =\
+			str(user_datetime["year"])+\
+			"/"+str(user_datetime["month"])+\
+			"/"+str(user_datetime["day"])
+	# seperate into both date and time
+	var user_time_as_string =\
+			str(user_datetime["hour"])+\
+			":"+str(user_datetime["minute"])+\
+			":"+str(user_datetime["second"])
+	
+	var datetime_string = user_date_as_string+" "+user_time_as_string
+	var user_model_name = OS.get_model_name()
+	var user_name = OS.get_name()
+	
+	var startup_log_string = "\n"+\
+			"Logger for {0} initialised at {1}".format([
+				user_name+" "+user_model_name, datetime_string
+			])
+	GlobalLog.info(self, startup_log_string)
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
