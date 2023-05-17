@@ -27,6 +27,32 @@ var test_iteration_total: int = 0
 # public methods
 
 
+# call on unit test class with an array full of unit tests
+# as long as all tests output a bool this will output a bool
+static func multitest(arg_tests: Array = []) -> bool:
+	var final_outcome := true
+	var test_result
+	if arg_tests.empty():
+		GlobalLog.trace(null, "no tests provided for multitest")
+		return false
+	# ready all tests before calling a multitest, or make sure they all
+	# have the property 'call_ready_on_start' set true
+	for testobj in arg_tests:
+		if testobj is Object:
+			if testobj.has_method("start_test"):
+				test_result = testobj.start_test()
+				if typeof(test_result) == TYPE_BOOL:
+					GlobalLog.trace(testobj, "test result = {0}".format([
+						"passed" if (test_result == true) else "failed"]))
+					final_outcome = (final_outcome and test_result)
+	# separate log with empty line
+	print()
+	var outcome_string = "multitest result = {0}".format([
+		"passed" if (final_outcome == true) else "failed"])
+	GlobalLog.trace(null, outcome_string.to_upper())
+	return final_outcome
+
+
 # if is_test_readied is false the test will not run, but it can be set to
 # default to true for tests that do not require preset properties
 func ready_test() -> void:
