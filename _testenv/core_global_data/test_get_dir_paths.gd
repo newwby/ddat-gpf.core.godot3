@@ -24,7 +24,7 @@ onready var all_test_dir_paths :=\
 ##############################################################################
 
 
-func ready_test(_property_register: Dictionary) -> void:
+func ready_test() -> void:
 	is_test_readied = _validate_test_directories()
 
 
