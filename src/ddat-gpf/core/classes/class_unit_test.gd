@@ -8,21 +8,16 @@ class_name UnitTest
 # class feature they are testing, e.g. if the test were for the Node class
 # and 'add_child' method, a good name would be 'test_node_add_child'.
 
-# All tests should have the following methods and properties.
-
-# void ready_test({property_name: property_value, ...})
-# bool start_test()
-
-# bool is_test_readied [default: false]
-# bool test_unreadied_after_iteration [default: false]
-# int test_iteration_maximum [default: 1]
-# int test_iteration_total [default: 0]
-
 
 ##############################################################################
 
+# this must be set for test to run
 export(bool) var is_test_readied := false
+# if is_test_readied is set false after running test once
 export(bool) var test_unreadied_after_iteration := false
+# if unreadied will call ready_test method during _test_prepare (start_test)
+export(bool) var call_ready_on_start := true
+# how many times this test can run
 export(int) var test_iteration_maximum := 1
 
 var test_iteration_total: int = 0
@@ -32,17 +27,9 @@ var test_iteration_total: int = 0
 # public methods
 
 
-# the ready_test method sets properties on the test according to the
-# dictionary argument provided (where keys correspond to property names on
-# the test and paired values set the values of the test properties).
-# ready_test should be called if the test needs specific properties set
-# before the test begins, or if test_unreadied_after_iteration is set and
-# the test has previously run
-# calling ready_test sets is_test_readied to true
 # if is_test_readied is false the test will not run, but it can be set to
 # default to true for tests that do not require preset properties
-func ready_test(property_register: Dictionary) -> void:
-	_set_properties(property_register)
+func ready_test() -> void:
 	is_test_readied = true
 
 
@@ -51,14 +38,32 @@ func ready_test(property_register: Dictionary) -> void:
 # if is_test_readied is false, or if test_iteration_total equals/exceeds
 # test_iteration_maximum,  nothing will happen
 func start_test() -> bool:
-	is_test_readied = false
-	test_iteration_total += 1
-	return true
+	if _test_prepare():
+		# console line break before log
+		print()
+		GlobalLog.trace(self, "test start")
+		var test_outcome = _do_test()
+		_test_conclude()
+		GlobalLog.trace(self, "final test outcome: {0}".format([test_outcome]))
+		return test_outcome
+	# test fails if not readied
+	else:
+		# TEST_NOT_READIED
+		GlobalLog.warning(self, 49)
+		return false
 
 
 ##############################################################################
 
 # private methods
+
+
+# SHADOW THIS METHOD IN YOUR EXTENDED UNIT TEST CLASS
+# this is where you should add your test logic
+# it should always return a test argument
+func _do_test() -> bool:
+	var test_outcome := false
+	return test_outcome
 
 
 func _set_properties(property_register: Dictionary) -> void:
@@ -71,4 +76,21 @@ func _set_properties(property_register: Dictionary) -> void:
 				# If the property does not exist or the given value's type
 				# doesn't match, nothing will happen.
 				self.set(property_name, property_value)
+
+
+# whether test can run
+func _test_prepare() -> bool:
+	if call_ready_on_start and not is_test_readied:
+		ready_test()
+	if not is_test_readied:
+		GlobalLog.warning(self, "test could not start")
+		return false
+	# else
+	return true
+
+
+func _test_conclude():
+	test_iteration_total += 1
+	if test_unreadied_after_iteration:
+		is_test_readied = false
 

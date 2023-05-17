@@ -27,7 +27,7 @@ _global_script_classes=[ {
 "base": "Node",
 "class": "UnitTest",
 "language": "GDScript",
-"path": "res://_testenv/test_classes/class_unit_test.gd"
+"path": "res://src/ddat-gpf/core/classes/class_unit_test.gd"
 }, {
 "base": "UnitTest",
 "class": "UnitTestGetDirPaths",
@@ -69,7 +69,7 @@ window/size/height=1080
 
 [editor]
 
-script_templates_search_path="res://_dev/script_templates"
+script_templates_search_path="res://src/ddat-gpf/core/templates"
 
 [logging]
 
