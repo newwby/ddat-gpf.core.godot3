@@ -304,17 +304,7 @@ func _save_logstring_to_disk(
 	#
 	var file_name = (str(arg_log_caller)+".txt").to_lower()
 	if not file_name.is_valid_filename():
-		#//TODO move strip invalid filename chars method to globalData
-		file_name = file_name.replace(":", "_")
-		file_name = file_name.replace("\"", "_")
-		file_name = file_name.replace("\\", "_")
-		file_name = file_name.replace("/", "_")
-		file_name = file_name.replace("?", "_")
-		file_name = file_name.replace("*", "_")
-		file_name = file_name.replace("|", "_")
-		file_name = file_name.replace("%", "_")
-		file_name = file_name.replace("<", "_")
-		file_name = file_name.replace(">", "_")
+		file_name = GlobalData.clean_file_name(file_name)
 	
 	if file_name.is_valid_filename():
 		var full_file_path = str(arg_target_directory+"/"+file_name).to_lower()

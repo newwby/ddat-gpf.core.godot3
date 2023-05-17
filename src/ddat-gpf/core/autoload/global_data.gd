@@ -107,6 +107,25 @@ func build_path(
 	return full_data_path
 
 
+# returns an invalid file name with all invalid characters (as specified by
+# 'is_valid_filename' method) replaced with a given replacement character
+# replaces all spaces and sets string to lowercase (option to disable each)
+func clean_file_name(
+		arg_file_name: String,
+		arg_replace_char: String = "_",
+		arg_replace_spaces: bool = true,
+		arg_to_lowercase: bool = true) -> String:
+	var new_string := arg_file_name
+	var banned_chars := [":", "/", "\\", "?", "*", "\"", "|", "%", "<", ">"]
+	for invalid_char in banned_chars:
+		new_string = new_string.replace(invalid_char, arg_replace_char)
+	if arg_replace_spaces:
+		new_string = new_string.replace(" ", arg_replace_char)
+	if arg_to_lowercase:
+		new_string = new_string.to_lower()
+	return new_string
+
+
 # method to create a directory, required to save resources to directories
 # that have yet to be referenced. If the path to the directory consists of
 # multiple directories that have yet to be created, this method will create
