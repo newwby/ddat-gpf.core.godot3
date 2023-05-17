@@ -116,6 +116,16 @@ func error(arg_caller: Object, arg_error_message):
 	_log(arg_caller, arg_error_message, 1)
 
 
+func get_log_permissions(arg_caller: Object) -> bool:
+	var permission_allowed
+	if arg_caller in log_permissions.keys():
+		permission_allowed = log_permissions[arg_caller]
+		if typeof(permission_allowed) == TYPE_BOOL:
+			return permission_allowed
+	# otherwise isn't blocked
+	return true
+
+
 # see _log for parameter explanation
 func info(arg_caller: Object, arg_error_message):
 	_log(arg_caller, arg_error_message, 4)
