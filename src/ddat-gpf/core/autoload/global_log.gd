@@ -105,6 +105,23 @@ func trace(arg_caller: Object, arg_error_message):
 	_log(arg_caller, arg_error_message, 3)
 
 
+# arguments as _log but accepts caller but does not accept error_message
+# does nothing if not in a debug build
+func log_stack_trace(arg_caller: Object):
+	if OS.is_debug_build():
+		var full_stack_trace = get_stack()
+		var error_stack_trace = full_stack_trace[1]
+		var error_func_id = error_stack_trace["function"]
+		var error_node_id = error_stack_trace["source"]
+		var error_line_id = error_stack_trace["line"]
+		var stack_trace_print_string =\
+				"\nStack Trace: [{f}] [{s}] [{l}]".format({\
+					"f": error_func_id,
+					"s": error_node_id,
+					"l": error_line_id})
+		GlobalLog.trace(arg_caller, stack_trace_print_string)
+
+
 # see _log for parameter explanation
 func warning(arg_caller: Object, arg_error_message):
 	_log(arg_caller, arg_error_message, 2)
