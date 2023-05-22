@@ -143,6 +143,17 @@ func reparent_node(arg_target_node: Node, arg_new_parent: Node) -> void:
 		emit_signal("node_reparented", null)
 
 
+static func sort_ascending(arg_a, arg_b):
+	if arg_a[0] < arg_b[0]:
+		return true
+	return false
+
+
+static func sort_descending(arg_a, arg_b):
+	if arg_a[0] < arg_b[0]:
+		return false
+	return true
+
 
 ##############################################################################
 
