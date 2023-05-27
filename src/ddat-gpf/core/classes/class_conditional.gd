@@ -10,7 +10,14 @@ class_name Conditional
 
 # Conditionals default to true but evaluate false if even one false is present
 
+# Any change evaluates whether the output would have changed, and emits
+# a signal if it has.
+
 ##############################################################################
+
+# signals emitted if the state changes after an add or remove call
+signal now_false()
+signal now_true()
 
 var _conditions = {}
 
@@ -19,7 +26,9 @@ var _conditions = {}
 
 # assign new conditional value
 func add(arg_key, arg_value: bool) -> void:
+	var start_state = is_true()
 	_conditions[arg_key] = arg_value
+	_check_state_change(start_state, is_true())
 
 
 # getter
@@ -33,5 +42,20 @@ func is_true() -> bool:
 
 # Returns true if the given key was present, false otherwise.
 func remove(arg_key) -> bool:
-	return _conditions.erase(arg_key)
+	var start_state = is_true()
+	var has_changed: bool = _conditions.erase(arg_key)
+	_check_state_change(start_state, is_true())
+	return has_changed
+
+
+##############################################################################
+
+
+# does nothing if output state is still the same
+func _check_state_change(arg_previous_state: bool, arg_current_state: bool):
+	if arg_previous_state != arg_current_state:
+		if arg_current_state == true:
+			emit_signal("now_true")
+		else:
+			emit_signal("now_false")
 
