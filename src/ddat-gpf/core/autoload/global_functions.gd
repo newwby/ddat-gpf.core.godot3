@@ -7,7 +7,8 @@ extends GameGlobal
 # GlobalFunctions
 
 #//TODO
-# need to move to ddat-gpf.core
+# change to globalfunc.gd not globalfunctions
+# confirm connection/disconnection need return -> values
 
 ##############################################################################
 
