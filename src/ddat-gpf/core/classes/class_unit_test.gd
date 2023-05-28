@@ -1,4 +1,4 @@
- extends Node
+extends Node
 
 class_name UnitTest
 
@@ -11,6 +11,7 @@ class_name UnitTest
 
 ##############################################################################
 
+export(bool) var autostart := false
 # this must be set for test to run
 export(bool) var is_test_readied := false
 # if is_test_readied is set false after running test once
@@ -21,6 +22,16 @@ export(bool) var call_ready_on_start := true
 export(int) var test_iteration_maximum := 1
 
 var test_iteration_total: int = 0
+
+##############################################################################
+
+# virtual methods
+
+
+func _ready():
+	if autostart:
+		var _test_result = start_test()
+
 
 ##############################################################################
 
