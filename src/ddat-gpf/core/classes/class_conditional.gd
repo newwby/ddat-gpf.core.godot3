@@ -16,6 +16,8 @@ class_name Conditional
 ##############################################################################
 
 # signals emitted if the state changes after an add or remove call
+signal outcome_changed(new_outcome)
+# deprecated
 signal now_false()
 signal now_true()
 
@@ -56,6 +58,8 @@ func _check_state_change(arg_previous_state: bool, arg_current_state: bool):
 	if arg_previous_state != arg_current_state:
 		if arg_current_state == true:
 			emit_signal("now_true")
+			emit_signal("outcome_changed", true)
 		else:
 			emit_signal("now_false")
+			emit_signal("outcome_changed", false)
 
