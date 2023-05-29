@@ -106,14 +106,24 @@ func _notification(what):
 # (useful for scripts whose debugging logs spam the console)
 # [param]
 # arg_caller should be the object you wish to allow or disallow logging from
-# arg_permission is whether to allow (if true) or disallow (if false)
-func change_log_permissions(arg_caller: Object, arg_permission: bool):
-	log_permissions[arg_caller] = arg_permission
+# arg_permission adjusts whether logs are output to console or not
+#	true = all logs, including elevated logs (see _log)
+#	null = default permission, as though this had never been called
+#	false = no logs
+# if arg_permission is not null or a bool, this method does nothing
+func change_log_permissions(arg_caller: Object, arg_permission) -> void:
+	if arg_permission == null and log_permissions.has(arg_caller):
+		log_permissions.erase(arg_caller)
+	elif typeof(arg_permission) == TYPE_BOOL:
+		log_permissions[arg_caller] = arg_permission
 
 
 # see _log for parameter explanation
-func error(arg_caller: Object, arg_error_message):
-	_log(arg_caller, arg_error_message, 1)
+func error(
+		arg_caller: Object,
+		arg_error_message,
+		arg_show_on_elevated_only: bool = false) -> void:
+	_log(arg_caller, arg_error_message, 1, arg_show_on_elevated_only)
 
 
 func get_log_permissions(arg_caller: Object) -> bool:
@@ -127,13 +137,19 @@ func get_log_permissions(arg_caller: Object) -> bool:
 
 
 # see _log for parameter explanation
-func info(arg_caller: Object, arg_error_message):
-	_log(arg_caller, arg_error_message, 4)
+func info(
+		arg_caller: Object,
+		arg_error_message,
+		arg_show_on_elevated_only: bool = false) -> void:
+	_log(arg_caller, arg_error_message, 4, arg_show_on_elevated_only)
 
 
 # see _log for parameter explanation
-func trace(arg_caller: Object, arg_error_message):
-	_log(arg_caller, arg_error_message, 3)
+func trace(
+		arg_caller: Object,
+		arg_error_message,
+		arg_show_on_elevated_only: bool = false) -> void:
+	_log(arg_caller, arg_error_message, 3, arg_show_on_elevated_only)
 
 
 # arguments as _log but accepts caller but does not accept error_message
@@ -154,8 +170,11 @@ func log_stack_trace(arg_caller: Object):
 
 
 # see _log for parameter explanation
-func warning(arg_caller: Object, arg_error_message):
-	_log(arg_caller, arg_error_message, 2)
+func warning(
+		arg_caller: Object,
+		arg_error_message,
+		arg_show_on_elevated_only: bool = false) -> void:
+	_log(arg_caller, arg_error_message, 2, arg_show_on_elevated_only)
 
 
 ##############################################################################
@@ -163,17 +182,25 @@ func warning(arg_caller: Object, arg_error_message):
 # private methods
 
 
-# get whether an object is allowed to make logging calls
+# get whether an object is allowed to make logging calls (output to console)
 # see 'change_log_permissions' method
-# if an object isn't in log_permissions their permissions default to allowed
-func _is_caller_permitted(arg_log_caller: Object) -> bool:
+# if an object isn't present in log_permissions, they have default logging
+# default logging = regular logs go through, elevated do not
+# if permissions are 'true', all logs (including elevated) go through
+# if permissions are 'false', no logs go through
+func _is_caller_permitted(arg_log_caller: Object, arg_show_on_elevated_only: bool) -> bool:	
 	var permission_state
-	if arg_log_caller in log_permissions.keys():
+	if not arg_log_caller in log_permissions.keys():
+		permission_state = null
+	else:
+		assert(arg_log_caller in log_permissions.keys())
 		permission_state = log_permissions[arg_log_caller]
-		if typeof(permission_state) == TYPE_BOOL:
-			return permission_state
-	# catchall
-	return true
+		assert(typeof(permission_state) == TYPE_BOOL)
+	# 
+	if permission_state == null:
+		return !arg_show_on_elevated_only
+	else:
+		return permission_state
 
 
 # method to check log is allowed (by ALLOW_ consts) before it goes ahead
@@ -206,10 +233,15 @@ func _is_log_type_allowed(arg_log_code: int = 0) -> bool:
 # #3, arg_log_code - passed from the public logging methods
 #		refers to the type of log (i.e. ERROR, WARNINGING, TRACE, or INFO),
 #		and influences whether is printed or pushed
+# #4, arg_show_on_elevated_only - see change_log_permissions for how to adjust
+# permissions amd _is_caller_permitted for how they affect logging;
+# log permissions allow for adding verbose logging. If a log
+# is elevated it will only show up in the console if 
 func _log(
 		arg_caller: Object,
 		arg_error_message,
-		arg_log_code: int = 0
+		arg_log_code: int = 0,
+		arg_show_on_elevated_only: bool = false
 		):
 	var caller_id: String = str(arg_caller)
 #	if "name" in arg_caller:
@@ -247,7 +279,7 @@ func _log(
 	# method and log_permission dict)
 	if not _is_log_type_allowed(arg_log_code):
 		return
-	if not _is_caller_permitted(arg_caller):
+	if not _is_caller_permitted(arg_caller, arg_show_on_elevated_only):
 		return
 	
 	if arg_log_code == LOG_CODES.ERROR:
