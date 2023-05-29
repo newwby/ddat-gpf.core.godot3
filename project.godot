@@ -38,6 +38,11 @@ _global_script_classes=[ {
 "class": "UnitTestGetDirPaths",
 "language": "GDScript",
 "path": "res://_testenv/unit_tests/global_data/test_get_dir_paths.gd"
+}, {
+"base": "UnitTest",
+"class": "UnitTestLogging",
+"language": "GDScript",
+"path": "res://_testenv/unit_tests/global_log/test_logging.gd"
 } ]
 _global_script_class_icons={
 "Conditional": "",
@@ -45,7 +50,8 @@ _global_script_class_icons={
 "GameDataContainer": "",
 "GameGlobal": "",
 "UnitTest": "",
-"UnitTestGetDirPaths": ""
+"UnitTestGetDirPaths": "",
+"UnitTestLogging": ""
 }
 
 [application]
