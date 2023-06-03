@@ -28,6 +28,8 @@ func confirm_connection(
 		binds: Array = [],
 		flags: int = 0
 		):
+	if (origin == null) or (target == null):
+		return ERR_INVALID_PARAMETER
 	var return_code := ERR_CANT_CONNECT
 	if origin.is_connected(signal_name, target, method_name):
 		return_code = OK
@@ -46,6 +48,8 @@ func confirm_disconnection(
 		target: Object,
 		method_name: String
 		):
+	if (origin == null) or (target == null):
+		return ERR_INVALID_PARAMETER
 	if origin.is_connected(signal_name, target, method_name):
 		origin.disconnect(signal_name, target, method_name)
 	if (origin.is_connected(signal_name, target, method_name) == false):
