@@ -33,6 +33,17 @@ func add(arg_key, arg_value: bool) -> void:
 	_check_state_change(start_state, is_true())
 
 
+func get_condition(arg_key):
+	if _conditions.has(arg_key):
+		return _conditions[arg_key]
+	else:
+		return null
+
+
+func has_condition(arg_key) -> bool:
+	return _conditions.has(arg_key)
+
+
 # getter
 func is_true() -> bool:
 	var outcome := true
