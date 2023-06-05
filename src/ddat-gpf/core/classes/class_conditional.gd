@@ -21,16 +21,22 @@ signal outcome_changed(new_outcome)
 signal now_false()
 signal now_true()
 
-var _conditions = {}
+const DEFAULT_OUTCOME := true
+
+var _conditions := {}
+
+# the outcome of the conditional - is only recalculated when a key is
+# added, removed, or changed
+# defaults to true
+var _current_outcome := DEFAULT_OUTCOME
 
 ##############################################################################
 
 
-# assign new conditional value
+# assign new conditional value or overwrite an existing one
 func add(arg_key, arg_value: bool) -> void:
-	var start_state = is_true()
 	_conditions[arg_key] = arg_value
-	_check_state_change(start_state, is_true())
+	_update_current_outcome()
 
 
 func get_condition(arg_key):
@@ -46,18 +52,13 @@ func has_condition(arg_key) -> bool:
 
 # getter
 func is_true() -> bool:
-	var outcome := true
-	for conditional_value in _conditions.values():
-		if typeof(conditional_value) == TYPE_BOOL:
-			outcome = (conditional_value and outcome)
-	return outcome
+	return _current_outcome
 
 
 # Returns true if the given key was present, false otherwise.
 func remove(arg_key) -> bool:
-	var start_state = is_true()
 	var has_changed: bool = _conditions.erase(arg_key)
-	_check_state_change(start_state, is_true())
+	_update_current_outcome()
 	return has_changed
 
 
@@ -65,7 +66,9 @@ func remove(arg_key) -> bool:
 
 
 # does nothing if output state is still the same
-func _check_state_change(arg_previous_state: bool, arg_current_state: bool):
+func _check_state_change(
+		arg_previous_state: bool,
+		arg_current_state: bool) -> void:
 	if arg_previous_state != arg_current_state:
 		if arg_current_state == true:
 			emit_signal("now_true")
@@ -73,4 +76,15 @@ func _check_state_change(arg_previous_state: bool, arg_current_state: bool):
 		else:
 			emit_signal("now_false")
 			emit_signal("outcome_changed", false)
+
+
+# checks the conditional state and emits conditional state changed signals
+func _update_current_outcome() -> void:
+	var start_state = is_true()
+	var outcome := DEFAULT_OUTCOME
+	for conditional_value in _conditions.values():
+		if typeof(conditional_value) == TYPE_BOOL:
+			outcome = (conditional_value and outcome)
+	_current_outcome = outcome
+	_check_state_change(start_state, is_true())
 
