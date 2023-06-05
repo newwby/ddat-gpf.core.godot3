@@ -126,6 +126,11 @@ func multiset_properties(arg_target: Object, arg_property_dict: Dictionary):
 #	arg_target_node beneath
 func reparent_node(arg_target_node: Node, arg_new_parent: Node) -> void:
 	var reparent_success := false
+	# don't pass invalid parameters
+	if arg_target_node == null or arg_new_parent == null:
+		return
+		# update for non-void return
+#		return ERR_INVALID_PARAMETER
 	# remove from initial parent, get target node out of SceneTree
 	if arg_target_node.is_inside_tree():
 		var old_parent_node = arg_target_node.get_parent()
