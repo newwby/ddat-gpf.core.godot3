@@ -4,23 +4,19 @@ extends UnitTest
 
 ##############################################################################
 
-# the following properties exist in a parent
-
-#export(bool) var is_test_readied := false
-#export(bool) var test_unreadied_after_iteration := false
-#export(bool) var call_ready_on_start := true
-#export(int) var test_iteration_maximum := 1
-
-#var test_iteration_total: int = 0
+# specific test properties
 
 ##############################################################################
 
+# public methods
 
-# shadowed method
-# if your test needs properties set or things done beforehand, add them here
+
+# add any logic that needs to run before test here
+# by default this method is called by start_test() before _do_test()
 func ready_test() -> void:
-	# is_test_readied = true
-	.ready_test()
+	# at all branch ends make sure is_test_readied is set true or false
+	# by default a test will not run if is_test_readied == false
+	is_test_readied = true
 
 
 ##############################################################################
@@ -28,9 +24,12 @@ func ready_test() -> void:
 # private methods
 
 
-# this is where you should add your test logic
-# it should always return a bool
+# add your test logic here, just make sure it returns test outcome as bool
 func _do_test() -> bool:
 	var test_outcome := false
 	return test_outcome
+
+
+#func _private_test_method():
+#	pass
 
