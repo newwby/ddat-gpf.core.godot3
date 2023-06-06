@@ -248,8 +248,12 @@ func _log(
 #		caller_id += ": "+arg_caller.name
 	
 	var full_error_message: String
-	if coderef.is_key(arg_error_message):
-		full_error_message = coderef.get_error_string(arg_error_message)
+	var coderef_ready = (coderef != null)
+	if coderef_ready:
+		if coderef.is_key(arg_error_message):
+			full_error_message = coderef.get_error_string(arg_error_message)
+		else:
+			full_error_message = str(arg_error_message)
 	else:
 		full_error_message = str(arg_error_message)
 	
