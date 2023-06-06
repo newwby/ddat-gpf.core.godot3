@@ -12,9 +12,10 @@ enum LOG_CODES {UNDEFINED, ERROR, WARNING, TRACE, INFO}
 # ON_INTERVAL; logs will be written to disk every x seconds
 #	(specify how long in log_to_disk_interval)
 #	if log_to_disk_setting == ON_INTERVAL, a timer node will be auto-setup
-enum LOG_TO_DISK_OPTION {NEVER, ON_EXIT, ON_INTERVAL}
+# ALWAYS; logs will be written to disk whenever generated
+enum LOG_TO_DISK_OPTION {NEVER, ON_EXIT, ON_INTERVAL, ALWAYS}
 
-const USER_LOG_DIRECTORY = "/logs/gpf_logger"
+const USER_LOG_DIRECTORY = "//logs/gpf_logger"
 
 # if in debug mode, errors will force a false assertion and stop the project
 const DEBUGGER_ASSERTS_ERRORS := false
@@ -30,12 +31,6 @@ const ALLOW_INFO := true
 const ALLOW_TRACE := true
 const ALLOW_WARNING := true
 
-# if set true, all logs will be saved and remembered during the run session
-# if set false logs will not be remembered (though they will still be
-# output to console and consequently the user log files)
-# logs made whilst this is set false cannot be recovered
-var record_logs := true
-
 # record of who logged what and when
 # nothing is recorded if record_logs is set to false
 var log_register = {}
@@ -46,6 +41,17 @@ var log_register = {}
 var log_permissions = {}
 # error code reference
 var coderef = ErrorCodes.new()
+
+# if set true, all logs will be saved and remembered during the run session
+# if set false logs will not be remembered (though they will still be
+# output to console and consequently the user log files)
+# logs made whilst this is set false cannot be recovered
+# logs cannot be saved to disk if they aren't being recorded
+var record_logs := true
+
+# where logs are saved this runtime
+var runtime_log_directory_name =\
+		"user://"+USER_LOG_DIRECTORY+"uncategorised"
 
 # see LOG_TO_DISK_OPTION
 var log_to_disk_setting: int =\
@@ -110,8 +116,13 @@ func _ready():
 	# logger is always allowed to log about self
 	# (parent gameGlobal class, for ddat-gpf singletons, disables by default)
 	change_log_permissions(self, true)
+	# print startup info
 	_logger_startup()
-#	GlobalLog.trace(self, "test log")
+	# setup log saving directory
+	runtime_log_directory_name =\
+			GlobalData.get_dirpath_user()+USER_LOG_DIRECTORY+"/"+\
+			Time.get_datetime_string_from_system(false, false).\
+			replace("T", "_").replace("-", "_").replace(":", "_")
 	# call setters
 	self.log_to_disk_setting = log_to_disk_setting
 
@@ -307,6 +318,11 @@ func _log(
 		log_record = LogRecord.new(arg_caller, log_timestamp, log_code_id,
 				log_code_name, full_error_message, full_log_string)
 		_update_log_register(arg_caller, log_record)
+		if log_to_disk_setting == LOG_TO_DISK_OPTION.ALWAYS:
+			log_record.saved_to_disk = true
+			print("logtodisk")
+			_save_logstring_to_disk(runtime_log_directory_name,
+					str(arg_caller), full_log_string)
 	
 	# check the log type is valid (see ALLOW_ consts/_is_log_type_allowed
 	# method and log_permission dict)
@@ -364,13 +380,7 @@ func _logger_startup():
 func _on_log_timer_timeout() -> void:
 	_save_all_logs_to_disk()
 
-
 func _save_all_logs_to_disk():
-	var log_directory_name =\
-			Time.get_datetime_string_from_system(false, false).\
-			replace("T", "_").replace("-", "_").replace(":", "_")
-	var base_dir = GlobalData.get_dirpath_user()+"/"+USER_LOG_DIRECTORY
-	var target_directory = base_dir+"/"+log_directory_name
 	var log_string = ""
 	var get_log_list := []
 	for log_owner in log_register.keys():
@@ -386,10 +396,12 @@ func _save_all_logs_to_disk():
 						log_string += str(log_item.full_log_string)
 						log_string += "\n"
 						log_item.saved_to_disk = true
-		_save_logstring_to_disk(target_directory, str(log_owner), log_string)
+		_save_logstring_to_disk(runtime_log_directory_name,
+				str(log_owner), log_string)
 
 
 #//TODO move this save text function to globalData
+#//TODO must rewrite text saving function in globalData
 func _save_logstring_to_disk(
 			arg_target_directory: String,
 			arg_log_caller: String,
@@ -407,8 +419,13 @@ func _save_logstring_to_disk(
 	if file_name.is_valid_filename():
 		var full_file_path = str(arg_target_directory+"/"+file_name).to_lower()
 		var newfile = File.new()
-		newfile.open(full_file_path, File.WRITE)
-		newfile.store_string(arg_logstring)
+		if GlobalData.validate_file(full_file_path):
+			newfile.open(full_file_path, File.READ_WRITE)
+			var file_content = newfile.get_as_text()
+			newfile.store_string(file_content+"\n"+arg_logstring)
+		else:
+			newfile.open(full_file_path, File.WRITE)
+			newfile.store_string(arg_logstring)
 		newfile.close()
 	else:
 		GlobalLog.warning(self, "name '"+str(file_name)+"' invalid")
@@ -422,10 +439,13 @@ func _setup_log_timer() -> void:
 		log_timer_ref.one_shot = false
 		self.call_deferred("add_child", log_timer_ref)
 		yield(log_timer_ref, "tree_entered")
-		log_timer_ref.connect("timeout", self, "_on_log_timer_timeout")
-		if log_timer_ref is Timer:
-			if log_timer_ref.is_inside_tree():
-				is_log_timer_setup = true
+		if log_timer_ref.connect("timeout", self, "_on_log_timer_timeout") == OK:
+			if log_timer_ref is Timer:
+				if log_timer_ref.is_inside_tree():
+					is_log_timer_setup = true
+					return
+		# else
+		GlobalLog.warning(self, "setup log timer failed")
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
