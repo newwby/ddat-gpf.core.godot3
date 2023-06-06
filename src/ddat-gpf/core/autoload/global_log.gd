@@ -6,6 +6,14 @@ extends GameGlobal
 
 enum LOG_CODES {UNDEFINED, ERROR, WARNING, TRACE, INFO}
 
+# when and how stored logs (see log_register) will be saved
+# NEVER; logs will not be saved
+# ON_EXIT; logs will be saved to disk on project close
+# ON_INTERVAL; logs will be written to disk every x seconds
+#	(specify how long in log_to_disk_interval)
+#	if log_to_disk_setting == ON_INTERVAL, a timer node will be auto-setup
+enum LOG_TO_DISK_OPTION {NEVER, ON_EXIT, ON_INTERVAL}
+
 const USER_LOG_DIRECTORY = "/logs/gpf_logger"
 
 # if in debug mode, errors will force a false assertion and stop the project
@@ -22,9 +30,6 @@ const ALLOW_INFO := true
 const ALLOW_TRACE := true
 const ALLOW_WARNING := true
 
-# stored logs (see log_register) will be saved to disk on project close
-var on_exit_log_to_disk := true
-
 # if set true, all logs will be saved and remembered during the run session
 # if set false logs will not be remembered (though they will still be
 # output to console and consequently the user log files)
@@ -39,8 +44,17 @@ var log_register = {}
 # call change_log_permissions to modify
 # if an object isn't in log_permissions their permissions default to allowed
 var log_permissions = {}
+# error code reference
+var coderef = ErrorCodes.new()
 
-onready var coderef = ErrorCodes.new()
+# see LOG_TO_DISK_OPTION
+var log_to_disk_setting: int =\
+		LOG_TO_DISK_OPTION.ON_EXIT setget _set_log_to_disk_setting
+# seconds between saving to disk
+var log_to_disk_interval: float = 300.0
+
+var is_log_timer_setup := false
+var log_timer_ref: Timer = null
 
 ##############################################################################
 
@@ -76,6 +90,19 @@ class LogRecord:
 # virtual methods
 
 
+# setting an invalid option will disable logging to disk
+func _set_log_to_disk_setting(arg_value):
+	if not arg_value in LOG_TO_DISK_OPTION.values():
+		log_to_disk_setting = LOG_TO_DISK_OPTION.NEVER
+	if arg_value == LOG_TO_DISK_OPTION.ON_INTERVAL\
+	and not is_log_timer_setup:
+		_setup_log_timer()
+	log_to_disk_setting = arg_value
+
+
+##############################################################################
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# logger prevents automatic quit on notification
@@ -85,6 +112,8 @@ func _ready():
 	change_log_permissions(self, true)
 	_logger_startup()
 #	GlobalLog.trace(self, "test log")
+	# call setters
+	self.log_to_disk_setting = log_to_disk_setting
 
 
 # hijack the exit process to force save logs to disk on quit
@@ -92,7 +121,7 @@ func _ready():
 # get_tree().quit() will skip this behaviour
 func _notification(what):
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
-		if on_exit_log_to_disk:
+		if log_to_disk_setting == LOG_TO_DISK_OPTION.ON_EXIT:
 			_save_all_logs_to_disk()
 		get_tree().quit()
 
@@ -332,6 +361,10 @@ func _logger_startup():
 	GlobalLog.info(self, startup_log_string)
 
 
+func _on_log_timer_timeout() -> void:
+	_save_all_logs_to_disk()
+
+
 func _save_all_logs_to_disk():
 	var log_directory_name =\
 			Time.get_datetime_string_from_system(false, false).\
@@ -379,6 +412,20 @@ func _save_logstring_to_disk(
 		newfile.close()
 	else:
 		GlobalLog.warning(self, "name '"+str(file_name)+"' invalid")
+
+
+func _setup_log_timer() -> void:
+	if log_timer_ref == null and is_log_timer_setup == false:
+		log_timer_ref = Timer.new()
+		log_timer_ref.wait_time = log_to_disk_interval
+		log_timer_ref.autostart = true
+		log_timer_ref.one_shot = false
+		self.call_deferred("add_child", log_timer_ref)
+		yield(log_timer_ref, "tree_entered")
+		log_timer_ref.connect("timeout", self, "_on_log_timer_timeout")
+		if log_timer_ref is Timer:
+			if log_timer_ref.is_inside_tree():
+				is_log_timer_setup = true
 
 
 func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
