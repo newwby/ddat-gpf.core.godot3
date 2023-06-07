@@ -31,6 +31,12 @@ const ALLOW_INFO := true
 const ALLOW_TRACE := true
 const ALLOW_WARNING := true
 
+# total logs registered this runtime
+# (split by whether they were output to console or not)
+# both values count logs even when record_logs is unset
+var total_log_calls := 0
+var total_valid_log_calls := 0
+
 # record of who logged what and when
 # nothing is recorded if record_logs is set to false
 var log_register = {}
@@ -324,12 +330,18 @@ func _log(
 			_save_logstring_to_disk(runtime_log_directory_name,
 					str(arg_caller), full_log_string)
 	
+	# recording logs
+	total_log_calls += 1
+	
 	# check the log type is valid (see ALLOW_ consts/_is_log_type_allowed
 	# method and log_permission dict)
 	if not _is_log_type_allowed(arg_log_code):
 		return
 	if not _is_caller_permitted(arg_caller, arg_show_on_elevated_only):
 		return
+	
+	# is valid log
+	total_valid_log_calls += 1
 	
 	if arg_log_code == LOG_CODES.ERROR:
 		push_error(full_log_string)
