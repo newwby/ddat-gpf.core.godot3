@@ -55,7 +55,11 @@ var coderef = ErrorCodes.new()
 # logs cannot be saved to disk if they aren't being recorded
 var record_logs := true
 
-# where logs are saved this runtime
+# where logs are saved to disk this runtime
+# (on _ready will set new value - logs before this singleton is ready will
+#	be placed in a default directory)
+# warning: if record_logs isn't set, logs will not be saved to disk unless
+#	log_to_disk_setting == LOG_TO_DISK_OPTION.ALWAYS
 var runtime_log_directory_name =\
 		"user://"+USER_LOG_DIRECTORY+"uncategorised"
 
@@ -200,7 +204,7 @@ func trace(
 
 # arguments as _log but accepts caller but does not accept error_message
 # does nothing if not in a debug build
-func log_stack_trace(arg_caller: Object):
+func log_stack_trace(arg_caller: Object) -> void:
 	if OS.is_debug_build():
 		var full_stack_trace = get_stack()
 		var error_stack_trace = full_stack_trace[1]
@@ -234,7 +238,9 @@ func warning(
 # default logging = regular logs go through, elevated do not
 # if permissions are 'true', all logs (including elevated) go through
 # if permissions are 'false', no logs go through
-func _is_caller_permitted(arg_log_caller: Object, arg_show_on_elevated_only: bool) -> bool:	
+func _is_caller_permitted(
+		arg_log_caller: Object,
+		arg_show_on_elevated_only: bool) -> bool:	
 	var permission_state
 	if not arg_log_caller in log_permissions.keys():
 		permission_state = null
@@ -288,7 +294,7 @@ func _log(
 		arg_error_message,
 		arg_log_code: int = 0,
 		arg_show_on_elevated_only: bool = false
-		):
+		) -> void:
 	var caller_id: String = str(arg_caller)
 #	if "name" in arg_caller:
 #		caller_id += ": "+arg_caller.name
@@ -363,7 +369,7 @@ func _log(
 		log_record.logged_to_console = true
 
 
-func _logger_startup():
+func _logger_startup() -> void:
 	# get basic information on the user
 	var user_datetime = OS.get_datetime()
 	
@@ -392,7 +398,8 @@ func _logger_startup():
 func _on_log_timer_timeout() -> void:
 	_save_all_logs_to_disk()
 
-func _save_all_logs_to_disk():
+
+func _save_all_logs_to_disk() -> void:
 	var log_string = ""
 	var get_log_list := []
 	for log_owner in log_register.keys():
@@ -417,7 +424,7 @@ func _save_all_logs_to_disk():
 func _save_logstring_to_disk(
 			arg_target_directory: String,
 			arg_log_caller: String,
-			arg_logstring: String):
+			arg_logstring: String) -> void:
 	# force write logging directory if doesn't exist
 	if not GlobalData.validate_directory(arg_target_directory):
 		if GlobalData.create_directory(arg_target_directory, true) != OK:
@@ -460,7 +467,9 @@ func _setup_log_timer() -> void:
 		GlobalLog.warning(self, "setup log timer failed")
 
 
-func _update_log_register(arg_caller: Object, arg_log_record: LogRecord):
+func _update_log_register(
+		arg_caller: Object,
+		arg_log_record: LogRecord) -> void:
 	var caller_record
 	if arg_caller in log_register.keys():
 		caller_record = log_register[arg_caller]
