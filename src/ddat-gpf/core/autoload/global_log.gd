@@ -45,6 +45,9 @@ var log_register = {}
 # call change_log_permissions to modify
 # if an object isn't in log_permissions their permissions default to allowed
 var log_permissions = {}
+# where record of last log permission state is kept if storing state when
+#	changing log permissions
+var _log_permissions_last_state = {}
 # error code reference
 var coderef = ErrorCodes.new()
 
@@ -153,6 +156,7 @@ func _notification(what):
 
 
 # DEPRECATED, use relevant method for elevate/disable/enable _log_permissions
+# cannot store log permissions
 # method allows blocking specific scripts from making log calls
 # (useful for scripts whose debugging logs spam the console)
 # [param]
@@ -171,14 +175,24 @@ func change_log_permissions(arg_caller: Object, arg_permission) -> void:
 
 # blocks logging permission to the object specified by argument
 # no logs will show in console if log permissions are disabled
-func disable_log_permissions(arg_caller: Object):
+func disable_log_permissions(
+		arg_caller: Object,
+		arg_store_permission: bool = false) -> void:
+	if arg_store_permission:
+		store_log_permissions(arg_caller)
 	change_log_permissions(arg_caller, false)
 
 
 # applies elevated permission to the object specified by argument
 # elevated logs (logs with the 'is_elevated' arg set to true) will show in
 #	the console only if the caller has elevated permissions
-func elevate_log_permissions(arg_caller: Object):
+# if arg_store_permission is set true, will record the current log permission
+#	before seting the new permission (see 'store_log_permissions')
+func elevate_log_permissions(
+		arg_caller: Object,
+		arg_store_permission: bool = false) -> void:
+	if arg_store_permission:
+		store_log_permissions(arg_caller)
 	change_log_permissions(arg_caller, true)
 
 
@@ -187,7 +201,11 @@ func elevate_log_permissions(arg_caller: Object):
 #	the console if the caller has enabled permissions, but elevated (see
 #	'elevate_log_permissions') logs will not
 # by default objects are assumed to have enabled log permissions
-func enable_log_permissions(arg_caller: Object):
+func enable_log_permissions(
+		arg_caller: Object,
+		arg_store_permission: bool = false) -> void:
+	if arg_store_permission:
+		store_log_permissions(arg_caller)
 	change_log_permissions(arg_caller, null)
 
 
@@ -240,6 +258,28 @@ func log_stack_trace(arg_caller: Object) -> void:
 					"s": error_node_id,
 					"l": error_line_id})
 		GlobalLog.trace(arg_caller, stack_trace_print_string)
+
+
+# sets the last log permission state stored by the caller key
+# removes the stored log permission state if returned
+# returns err code if caller hasn't previously stored a log permission state
+func reset_log_permissions(arg_caller: Object) -> int:
+	if arg_caller in _log_permissions_last_state.keys():
+		change_log_permissions(
+				arg_caller, _log_permissions_last_state[arg_caller])
+		_log_permissions_last_state.erase(arg_caller)
+		return OK
+	else:
+		return ERR_INVALID_PARAMETER
+
+
+# get the current log permission state of a caller and save it to the
+#	_log_permissions_last_state so it can later be recalled
+func store_log_permissions(arg_caller: Object) -> void:
+	if arg_caller in log_permissions.keys():
+		_log_permissions_last_state[arg_caller] = log_permissions[arg_caller]
+	else:
+		_log_permissions_last_state[arg_caller] = null
 
 
 # see _log for parameter explanation
