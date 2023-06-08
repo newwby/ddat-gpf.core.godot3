@@ -152,6 +152,7 @@ func _notification(what):
 # public methods
 
 
+# DEPRECATED, use relevant method for elevate/disable/enable _log_permissions
 # method allows blocking specific scripts from making log calls
 # (useful for scripts whose debugging logs spam the console)
 # [param]
@@ -166,6 +167,28 @@ func change_log_permissions(arg_caller: Object, arg_permission) -> void:
 		log_permissions.erase(arg_caller)
 	elif typeof(arg_permission) == TYPE_BOOL:
 		log_permissions[arg_caller] = arg_permission
+
+
+# blocks logging permission to the object specified by argument
+# no logs will show in console if log permissions are disabled
+func disable_log_permissions(arg_caller: Object):
+	change_log_permissions(arg_caller, false)
+
+
+# applies elevated permission to the object specified by argument
+# elevated logs (logs with the 'is_elevated' arg set to true) will show in
+#	the console only if the caller has elevated permissions
+func elevate_log_permissions(arg_caller: Object):
+	change_log_permissions(arg_caller, true)
+
+
+# allows logging permission to the object specified by argument
+# standard logs (logs with the 'is_elevated' arg set to false) will show for 
+#	the console if the caller has enabled permissions, but elevated (see
+#	'elevate_log_permissions') logs will not
+# by default objects are assumed to have enabled log permissions
+func enable_log_permissions(arg_caller: Object):
+	change_log_permissions(arg_caller, null)
 
 
 # see _log for parameter explanation
