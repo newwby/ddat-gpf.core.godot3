@@ -17,7 +17,32 @@ signal node_reparented(node)
 ##############################################################################
 
 
+# takes the main arguments from confirm_connection or confirm_disconnection
+#	and returns whether they are valid
+func confirm_connect_args(
+		origin: Object,
+		signal_name: String,
+		target: Object,
+		method_name: String
+		) -> int:
+	if origin == null:
+		GlobalLog.warning(self, "origin invalid")
+		return ERR_INVALID_PARAMETER
+	if target == null:
+		GlobalLog.warning(self, "target invalid")
+		return ERR_INVALID_PARAMETER
+	if not origin.has_signal(signal_name):
+		GlobalLog.warning(self, "origin signal invalid")
+		return ERR_INVALID_PARAMETER
+	if not target.has_method(method_name):
+		GlobalLog.warning(self, "target method invalid")
+		return ERR_INVALID_PARAMETER
+	# else
+	return OK
+
+
 # ensures a specific signal connection exists between sender and target
+# logs warnings if signals are not correct
 # returns OK if connection exists or is created
 # returns ERR if the connection cannot be found and is not succesfully made
 func confirm_connection(
@@ -28,18 +53,27 @@ func confirm_connection(
 		binds: Array = [],
 		flags: int = 0
 		):
-	if (origin == null) or (target == null):
+	# validate
+	if confirm_connect_args(origin, signal_name, target, method_name) != OK:
 		return ERR_INVALID_PARAMETER
+	# run connection, get outcome
 	var return_code := ERR_CANT_CONNECT
 	if origin.is_connected(signal_name, target, method_name):
 		return_code = OK
 	else:
 		return_code =\
 				origin.connect(signal_name, target, method_name, binds, flags)
+	
+	# return and log
+	if return_code != OK:
+		GlobalLog.warning(origin,
+				"confirm_connection: {0} not connected to {1}.{2}".format(
+				[signal_name, target, method_name]))
 	return return_code
 
 
 # ensures a specific signal connection does not exist between sender and target
+# logs warnings if signals are not correct
 # returns OK if connection exists or is created
 # returns ERR if the connection cannot be found and is not succesfully made
 func confirm_disconnection(
@@ -48,14 +82,24 @@ func confirm_disconnection(
 		target: Object,
 		method_name: String
 		):
-	if (origin == null) or (target == null):
+	# validate
+	if confirm_connect_args(origin, signal_name, target, method_name) != OK:
 		return ERR_INVALID_PARAMETER
+	# run disconnection, get outcome
+	var return_code:= ERR_ALREADY_EXISTS
 	if origin.is_connected(signal_name, target, method_name):
 		origin.disconnect(signal_name, target, method_name)
 	if (origin.is_connected(signal_name, target, method_name) == false):
-		return OK
+		return_code = OK
 	else:
-		return ERR_CANT_RESOLVE
+		return_code = ERR_CANT_RESOLVE
+	
+	# return and log
+	if return_code != OK:
+		GlobalLog.warning(origin,
+				"confirm_disconnection: {0} not disconnected from {1}.{2}".format(
+				[signal_name, target, method_name]))
+	return return_code
 
 
 # DEPRECATED
