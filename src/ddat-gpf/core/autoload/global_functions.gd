@@ -144,6 +144,37 @@ func confirm_signal(
 	return signal_return_state
 
 
+# pass a class name and returns an object of that type
+# returns null if can't find object
+func instance_from_name(arg_class_name: String) -> Object:
+	# first check if is inbuilt class
+	# (else check custom classes (see below ClassDB block))
+	if ClassDB.class_exists(arg_class_name):
+		if ClassDB.can_instance(arg_class_name):
+			return ClassDB.instance(arg_class_name)
+	
+	# custom_classes is an array of dictionaries
+	# each dict corresponds to a single class, with keys as follows
+	# base:		string name of class it extends
+	# class:	name of class (match to arg_class_name)
+	# language:	script language class is written in (i.e. GDScript)
+	# path:		local (res://) path to script
+	var custom_classes: Array =\
+			ProjectSettings.get_setting("_global_script_classes")
+	if not custom_classes.empty():
+		for class_dict in custom_classes:
+			if class_dict["class"] == arg_class_name:
+				var script_path = class_dict["path"]
+				if GlobalData.validate_file(script_path):
+					var class_script = load(script_path)
+					if class_script is Script:
+						if class_script.has_method("new"):
+							var class_object = class_script.new()
+							return class_object
+	# catchall
+	return null
+
+
 # allows configuring a target object's properties in a single call
 func multiset_properties(arg_target: Object, arg_property_dict: Dictionary):
 	if arg_property_dict.empty():
