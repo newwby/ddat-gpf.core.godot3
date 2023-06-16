@@ -4,7 +4,8 @@ class_name UnitTest_InstanceFromName
 
 ##############################################################################
 
-# specific test properties
+# Do note that this test will fail (and that is expected) on inbuilt classes
+#	that cannot be instanced
 
 ##############################################################################
 

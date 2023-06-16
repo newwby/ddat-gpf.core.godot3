@@ -1,9 +1,14 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://_testenv/unit_tests/global_func/test_instance_from_name.gd" type="Script" id=1]
+[ext_resource path="res://_testenv/unit_tests/global_func/test_get_inherited_classes.gd" type="Script" id=2]
 
 [node name="testenvGlobalFunc_root" type="Node2D"]
 
 [node name="UnitTest_InstanceFromName" type="Node" parent="."]
 script = ExtResource( 1 )
+autostart = true
+
+[node name="UnitTest_GetInheritedClasses" type="Node" parent="."]
+script = ExtResource( 2 )
 autostart = true
