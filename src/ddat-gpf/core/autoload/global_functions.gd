@@ -122,6 +122,49 @@ func confirm_signal(
 	return signal_return_state
 
 
+# from a given class name finds every class (including custom classes) that
+#	directly or indirectly inherits from that class
+# will return an empty poolStringArray if nothing is found
+func get_inheritance_from_name(
+			arg_class_name: String) -> PoolStringArray:
+	# find inbuilt classes
+	var output: PoolStringArray = []
+	if ClassDB.class_exists(arg_class_name):
+		output.append_array(ClassDB.get_inheriters_from_class(arg_class_name))
+	# find custom classes
+#	var class_sample = instance_from_name(arg_class_name)
+#	if class_sample != null:
+	# custom_classes is an array of dictionaries
+	# each dict corresponds to a single class, with keys as follows
+	# base:		string name of class it extends
+	# class:	name of class (match to arg_class_name)
+	# language:	script language class is written in (i.e. GDScript)
+	# path:		local (res://) path to script
+	var custom_classes: Array =\
+			ProjectSettings.get_setting("_global_script_classes")
+	var all_inheritors: PoolStringArray = [arg_class_name]
+	if not custom_classes.empty():
+		var loop_condition := false
+		var starting_size = all_inheritors.size()
+		# going to loop through the custom class dict-array repeatedly
+		#	finding every class that either inherits from the base class
+		#	argument, or from a class that inherits from a class that did,
+		#	or a descendent of that, etc.
+		#	loop breaks when new classes weren't found
+		while loop_condition == false:
+			starting_size = all_inheritors.size()
+			for class_dict in custom_classes:
+				assert(class_dict.has("base"))
+				if class_dict["base"] in all_inheritors:
+					var get_class_name = class_dict["class"]
+					assert(typeof(get_class_name) == TYPE_STRING)
+					if not get_class_name in all_inheritors:
+						all_inheritors.append(get_class_name)
+			loop_condition = (starting_size == all_inheritors.size())
+	output.append_array(all_inheritors)
+	return output
+
+
 # pass a class name and returns an object of that type
 # returns null if can't find object
 func instance_from_name(arg_class_name: String) -> Object:
@@ -130,6 +173,9 @@ func instance_from_name(arg_class_name: String) -> Object:
 	if ClassDB.class_exists(arg_class_name):
 		if ClassDB.can_instance(arg_class_name):
 			return ClassDB.instance(arg_class_name)
+		else:
+			GlobalLog.warning(self, arg_class_name+" is inbuilt but cannot instance")
+			return null
 	
 	# custom_classes is an array of dictionaries
 	# each dict corresponds to a single class, with keys as follows
