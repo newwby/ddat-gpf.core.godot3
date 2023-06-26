@@ -17,9 +17,9 @@ class_name Conditional
 
 # signals emitted if the state changes after an add or remove call
 signal outcome_changed(new_outcome)
-# deprecated
-signal now_false()
-signal now_true()
+signal outcome_checked()
+signal outcome_is_now_false()
+signal outcome_is_now_true()
 
 const DEFAULT_OUTCOME := true
 
@@ -69,12 +69,13 @@ func remove(arg_key) -> bool:
 func _check_state_change(
 		arg_previous_state: bool,
 		arg_current_state: bool) -> void:
+	emit_signal("outcome_checked")
 	if arg_previous_state != arg_current_state:
 		if arg_current_state == true:
-			emit_signal("now_true")
+			emit_signal("outcome_is_now_true")
 			emit_signal("outcome_changed", true)
 		else:
-			emit_signal("now_false")
+			emit_signal("outcome_is_now_false")
 			emit_signal("outcome_changed", false)
 
 
