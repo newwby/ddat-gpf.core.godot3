@@ -20,11 +20,11 @@ extends Node
 
 #//TODO
 
-# ignore extends and own class_name
-# ignore commented lines
+# ignore own class_name
 # check inbuilt classes
 # check non-gdscript(.gd) classes
 # count number of times a class name appears in a script
+# include singleton names?
 
 ##############################################################################
 
@@ -122,19 +122,26 @@ func _get_loaded_scripts(arg_gdscript_paths) -> Dictionary:
 func _read_call_relationships(
 		arg_loaded_scripts: Dictionary,
 		arg_class_names) -> void:
-	var script_source_code := ""
+	var script_source_code := []
 	var script_file: Script = null
 	for script_file_key in arg_loaded_scripts.keys():
 		script_file = arg_loaded_scripts[script_file_key]
 		if script_file != null:
-			script_source_code = script_file.source_code
-			for cname in arg_class_names:
-				if cname in script_source_code:
-					if not script_class_instances.has(script_file_key):
-						script_class_instances[script_file_key] = []
-					assert(typeof(script_class_instances[script_file_key])\
-							== TYPE_ARRAY)
-					script_class_instances[script_file_key].append(cname)
+			# split source code by line
+			script_source_code = script_file.source_code.split("\n")
+			for line in script_source_code:
+				if str(line).begins_with("extends")\
+				or str(line).begins_with("#"):
+					continue
+				else:
+					for cname in arg_class_names:
+						if cname in line:
+							if not script_class_instances.has(script_file_key):
+								script_class_instances[script_file_key] = []
+							assert(typeof(script_class_instances[script_file_key])\
+									== TYPE_ARRAY)
+							if not cname  in script_class_instances[script_file_key]:
+								script_class_instances[script_file_key].append(cname)
 	# console log output, or check inspector
 	for sci in script_class_instances:
 		print(sci, ": ", script_class_instances[sci])
