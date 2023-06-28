@@ -131,7 +131,8 @@ func _read_call_relationships(
 			script_source_code = script_file.source_code.split("\n")
 			for line in script_source_code:
 				if str(line).begins_with("extends")\
-				or str(line).begins_with("#"):
+				or str(line).begins_with("#")\
+				or str(line).begins_with("class_name"):
 					continue
 				else:
 					for cname in arg_class_names:
