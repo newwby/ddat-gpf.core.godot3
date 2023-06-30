@@ -44,6 +44,8 @@ The order of these singletons (within ProjectSetttings/AutoLoad) matters, so the
 
 11 - **GlobalPool** (ddat-gpf.eac) (_/src/ddat-gpf/eac/autoload/_)
 
-12 - **GlobalProgress** (ddat-gpf.gamefilemgr) (_/src/ddat-gpf/file_manager/autoload/_)
+12 - **GlobalEac** (ddat-gpf.eac) (_/src/ddat-gpf/eac/autoload/_)
+
+13 - **GlobalProgress** (ddat-gpf.gamefilemgr) (_/src/ddat-gpf/file_manager/autoload/_)
 
 *GlobalConfig will be moved to its own repo and module in the future.
