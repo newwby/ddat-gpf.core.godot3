@@ -24,29 +24,29 @@ signal node_reparented(node)
 # returns OK if connection exists or is created
 # returns ERR if the connection cannot be found and is not succesfully made
 func confirm_connection(
-		origin: Object,
-		signal_name: String,
-		target: Object,
-		method_name: String,
+		arg_origin: Object,
+		arg_signal_name: String,
+		arg_target: Object,
+		arg_method_name: String,
 		binds: Array = [],
 		flags: int = 0
 		):
 	# validate
-	if _confirm_connect_args(origin, signal_name, target, method_name) != OK:
+	if _confirm_connect_args(arg_origin, arg_signal_name, arg_target, arg_method_name) != OK:
 		return ERR_INVALID_PARAMETER
 	# run connection, get outcome
 	var return_code := ERR_CANT_CONNECT
-	if origin.is_connected(signal_name, target, method_name):
+	if arg_origin.is_connected(arg_signal_name, arg_target, arg_method_name):
 		return_code = OK
 	else:
 		return_code =\
-				origin.connect(signal_name, target, method_name, binds, flags)
+				arg_origin.connect(arg_signal_name, arg_target, arg_method_name, binds, flags)
 	
 	# return and log
 	if return_code != OK:
-		GlobalLog.warning(origin,
+		GlobalLog.warning(arg_origin,
 				"confirm_connection: {0} not connected to {1}.{2}".format(
-				[signal_name, target, method_name]))
+				[arg_signal_name, arg_target, arg_method_name]))
 	return return_code
 
 
@@ -55,28 +55,28 @@ func confirm_connection(
 # returns OK if connection exists or is created
 # returns ERR if the connection cannot be found and is not succesfully made
 func confirm_disconnection(
-		origin: Object,
-		signal_name: String,
-		target: Object,
-		method_name: String
+		arg_origin: Object,
+		arg_signal_name: String,
+		arg_target: Object,
+		arg_method_name: String
 		):
 	# validate
-	if _confirm_connect_args(origin, signal_name, target, method_name) != OK:
+	if _confirm_connect_args(arg_origin, arg_signal_name, arg_target, arg_method_name) != OK:
 		return ERR_INVALID_PARAMETER
 	# run disconnection, get outcome
 	var return_code:= ERR_ALREADY_EXISTS
-	if origin.is_connected(signal_name, target, method_name):
-		origin.disconnect(signal_name, target, method_name)
-	if (origin.is_connected(signal_name, target, method_name) == false):
+	if arg_origin.is_connected(arg_signal_name, arg_target, arg_method_name):
+		arg_origin.disconnect(arg_signal_name, arg_target, arg_method_name)
+	if (arg_origin.is_connected(arg_signal_name, arg_target, arg_method_name) == false):
 		return_code = OK
 	else:
 		return_code = ERR_CANT_RESOLVE
 	
 	# return and log
 	if return_code != OK:
-		GlobalLog.warning(origin,
+		GlobalLog.warning(arg_origin,
 				"confirm_disconnection: {0} not disconnected from {1}.{2}".format(
-				[signal_name, target, method_name]))
+				[arg_signal_name, arg_target, arg_method_name]))
 	return return_code
 
 
@@ -197,6 +197,55 @@ func instance_from_name(arg_class_name: String) -> Object:
 							return class_object
 	# catchall
 	return null
+
+
+# as confirm_connection but sets and validates multiple connection pairs
+# signal_name: method_name
+# cannot handle binds or flags, use confirm_connection for that
+func multi_connect(
+		arg_origin: Object,
+		arg_target: Object,
+		arg_signal_method_pairs: Dictionary = {}) -> int:
+	if arg_signal_method_pairs.empty():
+		return ERR_DOES_NOT_EXIST
+	# store all outputs
+	var output: int = OK
+	var end_output: int = OK
+	var method_name: String = ""
+	for signal_name in arg_signal_method_pairs.keys():
+		method_name = arg_signal_method_pairs[signal_name]
+		output = confirm_connection(arg_origin, signal_name, arg_target, method_name)
+		if output != OK:
+			GlobalLog.error(self,
+					"[connect] {0} signal: {1} -> {2} method: {3} invalid".format([
+					arg_origin, signal_name, arg_target, method_name]))
+		end_output = end_output and output
+	# if all were OK, this should be OK
+	return end_output
+
+
+# as confirm_disconnection but sets and validates multiple connection pairs
+# signal_name: method_name
+func multi_disconnect(
+		arg_origin: Object,
+		arg_target: Object,
+		arg_signal_method_pairs: Dictionary = {}):
+	if arg_signal_method_pairs.empty():
+		return ERR_DOES_NOT_EXIST
+	# store all outputs
+	var output: int = OK
+	var end_output: int = OK
+	var method_name: String = ""
+	for signal_name in arg_signal_method_pairs.keys():
+		method_name = arg_signal_method_pairs[signal_name]
+		output = confirm_disconnection(arg_origin, signal_name, arg_target, method_name)
+		if output != OK:
+			GlobalLog.error(self,
+					"[disconnect] {0} signal: {1} -> {2} method: {3} invalid".format([
+					arg_origin, signal_name, arg_target, method_name]))
+		end_output = end_output and output
+	# if all were OK, this should be OK
+	return end_output
 
 
 # allows configuring a target object's properties in a single call
