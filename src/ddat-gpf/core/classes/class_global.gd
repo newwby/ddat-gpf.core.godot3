@@ -26,7 +26,7 @@ var verbose_logging := false
 func _ready():
 	_preload()
 	# globals shouldn't logspam
-	GlobalLog.change_log_permissions(self, false)
+#	GlobalLog.change_log_permissions(self, false)
 
 
 ###############################################################################
