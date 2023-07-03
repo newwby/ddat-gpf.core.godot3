@@ -259,7 +259,6 @@ func get_dir_paths(
 	while dir_name != "":
 		if dir_access.current_is_dir():
 			path_to_current_dir = dir_access.get_current_dir()+"/"+dir_name
-			GlobalLog.trace(self, "at path: "+str(path_to_current_dir))
 			directories_inside.append(path_to_current_dir)
 		dir_name = dir_access.get_next()
 	# close before reading subdirectories
@@ -429,10 +428,11 @@ func load_resource(
 			return null
 	
 	# if everything is okay, return the loaded resource
+	# elevated log only
 	GlobalLog.info(self,
 			"resource {res} validated and returned".format({
 				"res": new_resource
-			}))
+			}), true)
 	return new_resource
 
 
