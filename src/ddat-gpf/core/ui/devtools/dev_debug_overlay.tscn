@@ -10,8 +10,11 @@ thickness = 4
 vertical = true
 
 [node name="DevDebugOverlay" type="Control"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_right = -1920.0
+margin_bottom = -1080.0
 mouse_filter = 2
 script = ExtResource( 1 )
 
@@ -19,6 +22,8 @@ script = ExtResource( 1 )
 margin_right = 1920.0
 margin_bottom = 1080.0
 mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 custom_constants/margin_right = 25
 custom_constants/margin_top = 50
 custom_constants/margin_left = 25
@@ -75,6 +80,7 @@ margin_bottom = 488.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+alignment = 2
 
 [node name="Mid" type="VBoxContainer" parent="Margin/Align/Bottom"]
 margin_left = 624.0
@@ -83,6 +89,7 @@ margin_bottom = 488.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+alignment = 2
 
 [node name="Right" type="VBoxContainer" parent="Margin/Align/Bottom"]
 margin_left = 1249.0
@@ -91,38 +98,41 @@ margin_bottom = 488.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+alignment = 2
 
 [node name="OverlayItem" type="HBoxContainer" parent="."]
-visible = false
 margin_left = 25.0
-margin_top = 542.0
+margin_top = 50.0
 margin_right = 645.0
-margin_bottom = 582.0
+margin_bottom = 90.0
+mouse_filter = 2
+alignment = 1
 
 [node name="Key" type="Label" parent="OverlayItem"]
-margin_top = 13.0
-margin_right = 188.0
-margin_bottom = 27.0
-size_flags_horizontal = 3
+margin_right = 54.0
+margin_bottom = 40.0
+size_flags_vertical = 5
+size_flags_stretch_ratio = 0.85
 text = "TEST KEY"
 valign = 1
-clip_text = true
 
 [node name="VSeparator" type="VSeparator" parent="OverlayItem"]
-margin_left = 192.0
-margin_right = 239.0
+margin_left = 58.0
+margin_right = 120.0
 margin_bottom = 40.0
+mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.25
 custom_constants/separation = 25
 custom_styles/separator = SubResource( 1 )
 
 [node name="Value" type="Label" parent="OverlayItem"]
-margin_left = 243.0
+margin_left = 124.0
 margin_right = 620.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 0, 40 )
 size_flags_horizontal = 3
+size_flags_vertical = 5
 size_flags_stretch_ratio = 2.0
 text = "TEST VALUE"
 valign = 1
