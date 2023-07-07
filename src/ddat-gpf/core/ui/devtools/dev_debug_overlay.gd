@@ -19,7 +19,10 @@ extends Control
 
 # TODO
 #// add viewport/resolution scaling support
+#// align mid container items to center, right container items to right
+
 #// add support for debug values that hide over time after no updates
+
 #// add support for renaming debug keys
 #// add developer support for custom adjusting/setting margin
 #// add support for text colour
@@ -52,12 +55,12 @@ var debug_overlay_item_register = {}
 # duplicated to create debug_overlay_item nodes
 onready var default_overlay_item_node = $OverlayItem
 # positional containers for debug_overlay_item nodes
-onready var overlay_position_top_left: VBoxContainer = $Margin/Align/Top/Left
-onready var overlay_position_top_mid: VBoxContainer = $Margin/Align/Top/Mid
-onready var overlay_position_top_right: VBoxContainer = $Margin/Align/Top/Right
-onready var overlay_position_bottom_left: VBoxContainer = $Margin/Align/Bottom/Left
-onready var overlay_position_bottom_mid: VBoxContainer = $Margin/Align/Bottom/Mid
-onready var overlay_position_bottom_right: VBoxContainer = $Margin/Align/Bottom/Right
+onready var position_container_top_left: VBoxContainer = $Margin/Align/Top/Left
+onready var position_container_top_mid: VBoxContainer = $Margin/Align/Top/Mid
+onready var position_container_top_right: VBoxContainer = $Margin/Align/Top/Right
+onready var position_container_bottom_left: VBoxContainer = $Margin/Align/Bottom/Left
+onready var position_container_bottom_mid: VBoxContainer = $Margin/Align/Bottom/Mid
+onready var position_container_bottom_right: VBoxContainer = $Margin/Align/Bottom/Right
 
 
 ##############################################################################
@@ -101,12 +104,15 @@ class DebugOverlayItem:
 
 # virt
 
+onready var margin_node = $Margin
+onready var dev_debug_overlay_root_node = $"."
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass
 	GlobalDebug.connect("update_debug_overlay_item", self, "_on_update_debug_overlay_item")
 #	self.visible = false
+	margin_node.rect_size = get_viewport_rect().size
 
 
 ##############################################################################
@@ -114,11 +120,48 @@ func _ready():
 # public
 
 
+# returns the VBoxContainer corresponding to a given POSITION enum value
+func get_debug_item_container(arg_position_value: int) -> VBoxContainer:
+	if not arg_position_value in POSITION.values():
+		return null
+	else:
+		match arg_position_value:
+			POSITION.TOP_LEFT:
+				return position_container_top_left
+			POSITION.TOP_MID:
+				return position_container_top_mid
+			POSITION.TOP_RIGHT:
+				return position_container_top_right
+			POSITION.BOTTOM_LEFT:
+				return position_container_bottom_left
+			POSITION.BOTTOM_MID:
+				return position_container_bottom_mid
+			POSITION.BOTTOM_RIGHT:
+				return position_container_bottom_right
+	# catchall
+	return null
+
+
+##############################################################################
+
+# private
+
+
 # called from _on_update_debug_overlay_item
 # creates both a new DebugOverlayItem object and the companion overlay_item node
-func _add_item(arg_item_key: String, arg_item_value) -> void:
+# if arg_position_value is negative it will be ignored and
+#	default_overlay_item_position will be used instead
+func _add_item(
+		arg_item_key: String,
+		arg_item_value,
+		arg_position_value: int = -1) -> void:
+	# get area of overlay to add the new item
+	var position_container_value = 0
+	if arg_position_value < 0:
+		position_container_value = default_overlay_item_position
+	var overlay_container = get_debug_item_container(position_container_value)
 	var new_overlay_node = default_overlay_item_node.duplicate()
-	self.call_deferred("add_child", new_overlay_node)
+	overlay_container.call_deferred("add_child", new_overlay_node)
 	yield(new_overlay_node, "tree_entered")
 	new_overlay_node.visible = true
 	# get the node references, check are valid, remove if not
