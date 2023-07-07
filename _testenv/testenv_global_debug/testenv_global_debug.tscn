@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://_testenv/testenv_global_debug/testenv_global_debug.gd" type="Script" id=1]
+
+[node name="testenvRoot_global_debug" type="Node2D"]
+script = ExtResource( 1 )
