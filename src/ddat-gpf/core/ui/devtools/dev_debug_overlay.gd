@@ -18,6 +18,7 @@ extends Control
 # container and add its value.
 
 # TODO
+#// add viewport/resolution scaling support
 #// add support for debug values that hide over time after no updates
 #// add support for renaming debug keys
 #// add developer support for custom adjusting/setting margin
@@ -39,6 +40,139 @@ extends Control
 
 ##############################################################################
 
+# where on-screen to position a debug_overlay_item
+enum POSITION {TOP_LEFT, TOP_MID, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_MID, BOTTOM_RIGHT}
+
+# which positional contaner debug_overlay_item nodes default to
+var default_overlay_item_position: int = POSITION.TOP_RIGHT
+
+# debug_key : debug_overlay_item object
+var debug_overlay_item_register = {}
+
+# duplicated to create debug_overlay_item nodes
+onready var default_overlay_item_node = $OverlayItem
+# positional containers for debug_overlay_item nodes
+onready var overlay_position_top_left: VBoxContainer = $Margin/Align/Top/Left
+onready var overlay_position_top_mid: VBoxContainer = $Margin/Align/Top/Mid
+onready var overlay_position_top_right: VBoxContainer = $Margin/Align/Top/Right
+onready var overlay_position_bottom_left: VBoxContainer = $Margin/Align/Bottom/Left
+onready var overlay_position_bottom_mid: VBoxContainer = $Margin/Align/Bottom/Mid
+onready var overlay_position_bottom_right: VBoxContainer = $Margin/Align/Bottom/Right
+
+
+##############################################################################
+
+# classes
+
+
+class DebugOverlayItem:
+	
+	var key_node_ref: Label = null
+	var value_node_ref: Label = null
+	var key := ""
+	var value = null
+	var is_valid := false
+	
+	func _init(
+			arg_key_node_ref: Label = null,
+			arg_value_node_ref: Label = null,
+			arg_key: String = "",
+			arg_value = null):
+		if arg_key_node_ref == null\
+		or arg_value_node_ref == null\
+		or arg_key == "":
+			is_valid = false
+		else:
+			self.key_node_ref = arg_key_node_ref
+			self.value_node_ref = arg_value_node_ref
+			self.key = arg_key
+			self.value = arg_value
+			is_valid = true
+
+
+	func update_labels():
+		if key_node_ref != null:
+			key_node_ref.text = key
+		if value_node_ref != null:
+			value_node_ref.text = str(value)
+
+
+##############################################################################
+
+# virt
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass
+	GlobalDebug.connect("update_debug_overlay_item", self, "_on_update_debug_overlay_item")
+#	self.visible = false
+
+
+##############################################################################
+
+# public
+
+
+# called from _on_update_debug_overlay_item
+# creates both a new DebugOverlayItem object and the companion overlay_item node
+func _add_item(arg_item_key: String, arg_item_value) -> void:
+	var new_overlay_node = default_overlay_item_node.duplicate()
+	self.call_deferred("add_child", new_overlay_node)
+	yield(new_overlay_node, "tree_entered")
+	new_overlay_node.visible = true
+	# get the node references, check are valid, remove if not
+	print(new_overlay_node.get_children())
+	var key_label_node_ref = new_overlay_node.get_node_or_null("Key")
+	var value_label_node_ref = new_overlay_node.get_node_or_null("Value")
+	if key_label_node_ref == null or value_label_node_ref == null:
+		GlobalLog.error(self, "err setup _add_item key/value node == null"+\
+				"| key: {0} & value: {1}".format([key_label_node_ref, value_label_node_ref]))
+		new_overlay_node.get_parent().call_deferred("remove_child", new_overlay_node)
+		return
+	# if setup of node was successful, create the reference object to store info
+	var new_overlay_object = DebugOverlayItem.new(
+		key_label_node_ref, value_label_node_ref, arg_item_key, arg_item_value)
+	new_overlay_object.update_labels()
+	# record by key
+	debug_overlay_item_register[arg_item_key] = new_overlay_object
+
+
+# called from _on_update_debug_overlay_item
+func _update_item(arg_item_key: String, arg_item_value):
+	var overlay_object: DebugOverlayItem = null
+	if debug_overlay_item_register.has(arg_item_key):
+		overlay_object = debug_overlay_item_register[arg_item_key]
+		if overlay_object != null:
+			overlay_object.value = arg_item_value
+			overlay_object.update_labels()
+
+
+# on GlobalDebug signal update_debug_overlay_item
+func _on_update_debug_overlay_item(arg_item_key, arg_item_value):
+	if typeof(arg_item_key) == TYPE_STRING:
+		if arg_item_key in debug_overlay_item_register.keys():
+			_update_item(arg_item_key, arg_item_value)
+		else:
+			_add_item(arg_item_key, arg_item_value)
+
+
+##############################################################################
+
+# private
+
+
+#
+
+
+##############################################################################
+
+
+func SEPARATE_OLD_old_sep():
+	pass
+
+##############################################################################
+
 # for passing to error logging
 const SCRIPT_NAME := "dev_debug_overlay"
 # for developer use, enable if making changes
@@ -46,7 +180,7 @@ const VERBOSE_LOGGING := true
 
 #//TODO - intiialise F1 key as a new action for show/hide debug overlay
 # change this string to the project map action you wish to toggle the overlay
-const TOGGLE_OVERLAY_ACTION := "ui_home"
+const TOGGLE_OVERLAY_ACTION := "ui_select"
 
 # for standardising the an item container's key or value label name
 # useful for validating and/or fetching the correct node
@@ -69,16 +203,14 @@ var debug_item_container_node_refs = {}
 # these are node paths to the major nodes in the debug info overlay scene
 #onready var debug_edge_margin_node: MarginContainer =\
 #		$Margin
-onready var debug_info_column_node: VBoxContainer =\
-		$Margin/InfoColumn
-onready var debug_item_container_default_node: HBoxContainer =\
-		$Margin/InfoColumn/ItemContainer
-
-##############################################################################
+onready var debug_info_column_node: VBoxContainer = null# =\
+#		$Margin/InfoColumn
+onready var debug_item_container_default_node: HBoxContainer = null#=\
+#		$Margin/InfoColumn/ItemContainer
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
+
+func ready_old():
 	# any failed success setup step will unset this
 	var setup_success_state = true
 	
@@ -112,6 +244,7 @@ func _ready():
 	# if default item container was left visible in testing, always hide it
 	if debug_item_container_default_node != null:
 		debug_item_container_default_node.visible = false
+	create_debug_item_container("bleeh", "300")
 
 
 ##############################################################################
@@ -119,7 +252,7 @@ func _ready():
 
 # on recieving input to toggle the overlay, flip whether to show/hide it
 func _input(event):
-	if event.is_action_released(TOGGLE_OVERLAY_ACTION):
+	if event.is_action_pressed(TOGGLE_OVERLAY_ACTION):
 		self.visible = !self.visible
 
 
