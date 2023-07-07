@@ -113,6 +113,14 @@ window/size/height=1080
 
 script_templates_search_path="res://src/ddat-gpf/core/templates"
 
+[input]
+
+show_debug_menu={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777244,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+ ]
+}
+
 [logging]
 
 file_logging/enable_file_logging=true
