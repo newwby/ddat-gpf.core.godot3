@@ -1,4 +1,4 @@
-extends Control
+extends CanvasLayer
 
 #class_name DevDebugOverlay
 
@@ -55,7 +55,7 @@ var debug_overlay_item_register = {}
 var show_menu_action := "show_debug_menu"
 
 # duplicated to create debug_overlay_item nodes
-onready var default_overlay_item_node = $OverlayItem
+onready var default_overlay_item_node = $Margin/OverlayItem
 # positional containers for debug_overlay_item nodes
 onready var position_container_top_left: VBoxContainer = $Margin/Align/Top/Left
 onready var position_container_top_mid: VBoxContainer = $Margin/Align/Top/Mid
@@ -63,7 +63,6 @@ onready var position_container_top_right: VBoxContainer = $Margin/Align/Top/Righ
 onready var position_container_bottom_left: VBoxContainer = $Margin/Align/Bottom/Left
 onready var position_container_bottom_mid: VBoxContainer = $Margin/Align/Bottom/Mid
 onready var position_container_bottom_right: VBoxContainer = $Margin/Align/Bottom/Right
-
 
 ##############################################################################
 
@@ -193,7 +192,7 @@ func _add_item(
 
 
 func _on_viewport_resized():
-	margin_node.rect_size = get_viewport_rect().size
+	margin_node.rect_size = margin_node.get_viewport_rect().size
 
 
 # called from _on_update_debug_overlay_item
