@@ -1,9 +1,13 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://src/ddat-gpf/core/ui/devtools/dev_debug_overlay.gd" type="Script" id=1]
-[ext_resource path="res://src/ddat-gpf/core/ui/devtools/font_devtools_item_container_key.tres" type="DynamicFont" id=2]
-[ext_resource path="res://src/ddat-gpf/core/ui/devtools/style_line_devtools_item_container_divider.tres" type="StyleBox" id=3]
-[ext_resource path="res://src/ddat-gpf/core/ui/devtools/font_devtools_item_container_value.tres" type="DynamicFont" id=4]
+
+[sub_resource type="StyleBoxLine" id=1]
+color = Color( 1, 1, 1, 1 )
+grow_begin = -10.0
+grow_end = -10.0
+thickness = 4
+vertical = true
 
 [node name="DevDebugOverlay" type="Control"]
 anchor_right = 1.0
@@ -20,48 +24,106 @@ custom_constants/margin_top = 50
 custom_constants/margin_left = 25
 custom_constants/margin_bottom = 50
 
-[node name="InfoColumn" type="VBoxContainer" parent="Margin"]
-margin_left = 1351.0
+[node name="Align" type="VBoxContainer" parent="Margin"]
+margin_left = 25.0
 margin_top = 50.0
 margin_right = 1895.0
 margin_bottom = 1030.0
 mouse_filter = 2
-size_flags_horizontal = 10
+
+[node name="Top" type="HBoxContainer" parent="Margin/Align"]
+margin_right = 1870.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ItemContainer" type="HBoxContainer" parent="Margin/InfoColumn"]
-margin_right = 544.0
-margin_bottom = 31.0
+[node name="Left" type="VBoxContainer" parent="Margin/Align/Top"]
+margin_right = 620.0
+margin_bottom = 488.0
 mouse_filter = 2
-custom_constants/separation = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="Key" type="Label" parent="Margin/InfoColumn/ItemContainer"]
-margin_right = 400.0
-margin_bottom = 31.0
-rect_min_size = Vector2( 400, 0 )
-custom_colors/font_color = Color( 1, 1, 1, 1 )
-custom_fonts/font = ExtResource( 2 )
-text = "testkey_ddat"
-align = 2
+[node name="Mid" type="VBoxContainer" parent="Margin/Align/Top"]
+margin_left = 624.0
+margin_right = 1245.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Right" type="VBoxContainer" parent="Margin/Align/Top"]
+margin_left = 1249.0
+margin_right = 1870.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Bottom" type="HBoxContainer" parent="Margin/Align"]
+margin_top = 492.0
+margin_right = 1870.0
+margin_bottom = 980.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Left" type="VBoxContainer" parent="Margin/Align/Bottom"]
+margin_right = 620.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Mid" type="VBoxContainer" parent="Margin/Align/Bottom"]
+margin_left = 624.0
+margin_right = 1245.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Right" type="VBoxContainer" parent="Margin/Align/Bottom"]
+margin_left = 1249.0
+margin_right = 1870.0
+margin_bottom = 488.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="OverlayItem" type="HBoxContainer" parent="."]
+visible = false
+margin_left = 25.0
+margin_top = 542.0
+margin_right = 645.0
+margin_bottom = 582.0
+
+[node name="Key" type="Label" parent="OverlayItem"]
+margin_top = 13.0
+margin_right = 188.0
+margin_bottom = 27.0
+size_flags_horizontal = 3
+text = "TEST KEY"
 valign = 1
 clip_text = true
-uppercase = true
 
-[node name="VSeparator" type="VSeparator" parent="Margin/InfoColumn/ItemContainer"]
-margin_left = 402.0
-margin_right = 417.0
-margin_bottom = 31.0
-mouse_filter = 2
-custom_constants/separation = 15
-custom_styles/separator = ExtResource( 3 )
+[node name="VSeparator" type="VSeparator" parent="OverlayItem"]
+margin_left = 192.0
+margin_right = 239.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.25
+custom_constants/separation = 25
+custom_styles/separator = SubResource( 1 )
 
-[node name="Value" type="Label" parent="Margin/InfoColumn/ItemContainer"]
-margin_left = 419.0
-margin_top = 5.0
-margin_right = 544.0
-margin_bottom = 26.0
-rect_min_size = Vector2( 125, 0 )
-custom_fonts/font = ExtResource( 4 )
-text = "testval117"
+[node name="Value" type="Label" parent="OverlayItem"]
+margin_left = 243.0
+margin_right = 620.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 0, 40 )
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+text = "TEST VALUE"
 valign = 1
 clip_text = true
