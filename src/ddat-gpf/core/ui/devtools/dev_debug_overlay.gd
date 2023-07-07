@@ -52,6 +52,8 @@ var default_overlay_item_position: int = POSITION.TOP_RIGHT
 # debug_key : debug_overlay_item object
 var debug_overlay_item_register = {}
 
+var show_menu_action := "show_debug_menu"
+
 # duplicated to create debug_overlay_item nodes
 onready var default_overlay_item_node = $OverlayItem
 # positional containers for debug_overlay_item nodes
@@ -112,7 +114,16 @@ func _ready():
 	pass
 	GlobalDebug.connect("update_debug_overlay_item", self, "_on_update_debug_overlay_item")
 #	self.visible = false
-	margin_node.rect_size = get_viewport_rect().size
+	_on_viewport_resized()
+	var viewport_root: Viewport = get_viewport()
+	if viewport_root != null:
+		if viewport_root.connect("size_changed", self, "_on_viewport_resized") != OK:
+			GlobalLog.error(self, "GlobalDebug err connect _on_viewport_resized")
+
+
+func _input(event):
+	if event.is_action_pressed(show_menu_action):
+		self.visible = !self.visible
 
 
 ##############################################################################
@@ -179,6 +190,10 @@ func _add_item(
 	new_overlay_object.update_labels()
 	# record by key
 	debug_overlay_item_register[arg_item_key] = new_overlay_object
+
+
+func _on_viewport_resized():
+	margin_node.rect_size = get_viewport_rect().size
 
 
 # called from _on_update_debug_overlay_item
@@ -294,7 +309,7 @@ func ready_old():
 
 
 # on recieving input to toggle the overlay, flip whether to show/hide it
-func _input(event):
+func _input_old(event):
 	if event.is_action_pressed(TOGGLE_OVERLAY_ACTION):
 		self.visible = !self.visible
 
