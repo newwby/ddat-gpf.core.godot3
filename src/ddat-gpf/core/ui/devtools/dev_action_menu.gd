@@ -7,75 +7,42 @@ extends Control
 # DevActionMenu
 
 ##############################################################################
-#
-# DevActionMenu is
-#
-# DEPENDENCY: GlobalDebug
-#
-##############################################################################
 
-#//TODO DEV_ACTION_MENU
-# Mouse filter review
-# Dev action button scene - auto connects to owner, calls method with export str name
+# OVERVIEW
+# DevCommands are added with GlobalDebug.add_dev_command which passes via a
+#	signal to the devActionMenu
+#	signal passes args (caller_ref, button_name, caller_method)
+#	as with debugoverlay, uses the ref as a key and creates a devActionMenu
+#	object as value; the object has ref to the button (created on next idle
+#	frame, before the devActionMenu object), the caller, and the method
+#	when button is clicked it calls the method on the caller
+
+# DevCommands automatically connect to caller tree exit and remove themselves
+#		if the caller exits the tree
+# Devs should use node-extended scripts in the scene tree storing their
+#	devActionMenu scripts (and include this in sample project) but any node
+#	can add an action button in this way
+
+#//TODO
 # Autoclose on dev action button selection
-# Command button (different to overlay) to bring up devActionMenu
-# working send command button and close menu button
+# Optional close menu button functionality
+
+# Command button (different to overlay, F2 project default) to bring up
+# devActionMenu; working send command button and close menu button
+
+# Text Commands with send command button; DevCommands can also be accessed
+#	by string and the button does not have to be added
+
 # set up style resource/s for the buttons
 # set up font resource for the buttons
-# set up action button container item/button margins
 
-#//TODO DEV_DEBUG_OVERLAY
-# also add folder for dev_debug_overlay
-# rename devtools_item_container font resources for consistency
+# automatically generated button margins and panel sizees
 
-#//TODO DEV_TOOLS
-# add a dev console for viewing globalDebug logging in-game
-# devTools -> add dev menu buttons at top of screen
-#	(show DevActionMenu, show DevDebugOverlay, show DevConsole)
-
-#//TODO SAMPLE_SCENE
-# sample scene with sample button
-# sample devCommand
-
-#
-# PLANNED STRUCTURE BELOW
-#
-
-#//PROPERTIES
-#
-# action buttons are just buttons linked to specific DevCommand structs via signal
-# devCommand is a struct w/str arg for signal name, under devActionMenu or globalDebug
-# devCommands store their caller_self and method and validate before calling
-# devCommands also validate the signal exists on globalDebug before calling
-# devCommands are stored in a register/dict
+# Margin/PanelMargin/VBox/ActionButtonContainer needs to dynamically determine
+#	number of columns based on Margin/PanelMargin/VBox size and button width
 
 ##############################################################################
-#
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-#
-#05. signals
-#06. enums
 
-#07. constants
-# for passing to error logging
-const SCRIPT_NAME := "DevActionMenu"
-# for developer use, enable if making changes
-const VERBOSE_LOGGING := true
-
-#08. exported variables
-#09. public variables
-#10. private variables
-#11. onready variables
-#
-##############################################################################
-#
-#12. optional built-in virtual _init method
-#13. built-in virtual _ready method
-#14. remaining built-in virtual methods
-#15. public methods
-#16. private methods
 onready var margin_node = $Margin
 
 ##############################################################################
