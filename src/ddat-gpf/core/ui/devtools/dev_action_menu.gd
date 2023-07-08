@@ -76,6 +76,29 @@ const VERBOSE_LOGGING := true
 #14. remaining built-in virtual methods
 #15. public methods
 #16. private methods
+onready var margin_node = $Margin
+
+##############################################################################
+
+
+func _ready():
+	_setup_viewport_responsiveness()
+	_on_viewport_resized()
+
+
+func _on_viewport_resized():
+	margin_node.rect_size = margin_node.get_viewport_rect().size
+
+
+func _setup_viewport_responsiveness():
+	# set up handling for if viewport resizes
+	var viewport_root: Viewport = get_viewport()
+	if viewport_root != null:
+		var signal_outcome = OK
+		signal_outcome = viewport_root.connect("size_changed", self, "_on_viewport_resized")
+		if signal_outcome != OK:
+			GlobalLog.error(self, "DebugOverlay err setup _on_viewport_resized")
+
 
 ##############################################################################
 
