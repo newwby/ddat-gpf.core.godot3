@@ -59,7 +59,7 @@ class ActionMenuItem:
 	var caller_method_name := ""
 	var is_valid := false
 	var in_tree := false
-	var waiting_to_join_tree := false
+	var is_button_join_queued := false
 	
 	func _init(
 			arg_key: String = "",
@@ -82,22 +82,45 @@ class ActionMenuItem:
 	# when button is set, setup automatic behaviour for button pressing and
 	#	disabling call functionality if button exits the tree
 	func _set_button_node_ref(arg_value: Button):
-		button_node_ref = arg_value
-		if button_node_ref != null:
-			if button_node_ref.is_inside_tree() == false:
-				waiting_to_join_tree = true
-				yield(button_node_ref, "tree_entered")
-				waiting_to_join_tree = false
-			var signal_check_1 = GlobalFunc.confirm_connection(
-						button_node_ref, "pressed", self, "_on_button_pressed")
-			var signal_check_2 = GlobalFunc.confirm_connection(
-						button_node_ref, "tree_entered", self, "_on_button_enter_or_exit_tree")
-			var signal_check_3 = GlobalFunc.confirm_connection(
-						button_node_ref, "tree_exited", self, "_on_button_enter_or_exit_tree")
+		# if button_node_ref is set whilst waiting for an orphaned button
+		#	node to join the tree, the previous set attempt is halted
+		if is_button_join_queued:
+			is_button_join_queued = false
+		
+		if arg_value != null:
+			if arg_value.is_inside_tree() == false:
+				# wait for the orphaned button node to join tree
+				is_button_join_queued = true
+				yield(arg_value, "tree_entered")
+				# if a new set was attempted during the wait, don't proceed
+				if not is_button_join_queued:
+					return
+				is_button_join_queued = false
+			
+			var signal_check: int = OK
+			
+			if button_node_ref != null:
+				# remove previous signals
+				signal_check = GlobalFunc.multi_disconnect(button_node_ref, self,
+						{"pressed": "_on_button_pressed",
+						"tree_entered": "_on_button_enter_or_exit_tree",
+						"tree_exited": "_on_button_enter_or_exit_tree"})
 			# check signals connected
-			if (signal_check_1+signal_check_2+signal_check_3) != OK:
-				GlobalLog.error(self, "button {0} setup invalid, ERR {1}-{2}-{3}".format([
-						button_node_ref, signal_check_1, signal_check_2, signal_check_3]))
+			if (signal_check) != OK:
+				GlobalLog.error(self, "button {0} disconnect invalid, ERR {1}".format([
+						button_node_ref, signal_check]))
+			
+			button_node_ref = arg_value
+			
+			# proceed with setting up signals
+			signal_check = GlobalFunc.multi_connect(button_node_ref, self,
+					{"pressed": "_on_button_pressed",
+					"tree_entered": "_on_button_enter_or_exit_tree",
+					"tree_exited": "_on_button_enter_or_exit_tree"})
+			# check signals connected
+			if (signal_check) != OK:
+				GlobalLog.error(self, "button {0} connect invalid, ERR {1}".format([
+						button_node_ref, signal_check]))
 			in_tree = button_node_ref.is_inside_tree()
 	
 	
