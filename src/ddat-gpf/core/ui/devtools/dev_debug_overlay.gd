@@ -62,6 +62,7 @@ class DebugOverlayItem:
 		or arg_key_node_ref == null\
 		or arg_value_node_ref == null\
 		or arg_key == "":
+			GlobalLog.error(self, "DebugOverlayItem failed setup")
 			is_valid = false
 		else:
 			self.container_node_ref = arg_container_node_ref
@@ -74,6 +75,8 @@ class DebugOverlayItem:
 
 # update label nodes (stored by reference) by stored value
 	func update_labels():
+		if not is_valid:
+			return
 		if key_node_ref != null:
 			key_node_ref.text = key
 		if value_node_ref != null:
