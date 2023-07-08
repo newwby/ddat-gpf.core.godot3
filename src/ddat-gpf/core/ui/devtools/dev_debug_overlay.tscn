@@ -9,7 +9,7 @@ grow_end = -10.0
 thickness = 4
 vertical = true
 
-[node name="DebugCanvas" type="CanvasLayer"]
+[node name="DebugOverlay" type="Control"]
 visible = false
 script = ExtResource( 1 )
 
