@@ -4,48 +4,21 @@ extends Control
 
 ##############################################################################
 
-# DevDebugOverlay.gd is a script for the scene/node of the same name,
-# which manages the presentation of debug information during gameplay.
-
-# DEPENDENCY: GlobalDebug
-
-# 
-# HOW TO USE
-# Call public method to add or update a debug value
-# If the key for the update is found, DevDebugOverlay will push an update to
-# the matching debug item container, changing the value as appropriate.
+# Call GlobalDebug.update_debug_overlay(*args) with key and value
+# If the key already exists, DevDebugOverlay will push an update to the
+# matching debug overlay item container, changing the value as appropriate.
 # If the key is not found, DevDebugOverlay will create a new debug item
-# container and add its value.
-
-# TODO
-#// add viewport/resolution scaling support
-#// align mid container items to center, right container items to right
-
-#// add support for debug values that hide over time after no updates
-
-#// add support for renaming debug keys
-#// add developer support for custom adjusting/setting margin
-#// add support for text colour
-#// add support for multiple info columns
-
-#// add support for autosorting options, e.g. alphabetically by key
-#// add Public Function to update debug values
-#// add secondary toggle confirm on release builds
-#// add perma-disable (via globalDebug) option
-
-#// add support for info column categories (empty category == hide)
-#	- option(oos) category organisation; default blank enum dev can customise
-#	- subheadings and dividers
-
-# POTENTIAL BUGS
-#// what happens if multiple sources try to update a new key? will more than
-# one debugItemContainer be created? what happens to the reference of the last?
+# container on the next idle frame and then update as normal
 
 ##############################################################################
 
 # debug_key : debug_overlay_item object
+# stores references to the DebugOverlayItem (local class) object that stores
+#	relevant properties about the overlay item
 var debug_overlay_item_register = {}
 
+# action that must be pressed to show the debug overlay
+# add this action to your project input map or update string to an existing action
 var show_menu_action := "show_debug_menu"
 
 # debug items cannot be updated until the frame after the request to create them
@@ -69,6 +42,7 @@ onready var position_container_bottom_right: VBoxContainer = $Margin/Align/Botto
 # classes
 
 
+# data container
 class DebugOverlayItem:
 	
 	var key_node_ref: Label = null
