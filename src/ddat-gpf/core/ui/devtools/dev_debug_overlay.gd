@@ -90,6 +90,8 @@ class DebugOverlayItem:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	self.visible = false
+	default_overlay_item_node.visible = false
 	var signal_outcome = GlobalFunc.confirm_connection(GlobalDebug,
 			"update_debug_overlay_item", self, "_on_update_debug_overlay_item") 
 	if signal_outcome != OK:
