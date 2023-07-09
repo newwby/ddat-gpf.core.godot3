@@ -145,3 +145,4 @@ text = "SampleButton"
 [connection signal="pressed" from="Margin/PanelMargin/VBox/CommandContainer/HBox/SendCommandButton" to="." method="_on_send_command_button_pressed"]
 [connection signal="focus_entered" from="Margin/PanelMargin/VBox/CommandContainer/HBox/CommandLine" to="." method="_on_command_line_focus_entered"]
 [connection signal="focus_exited" from="Margin/PanelMargin/VBox/CommandContainer/HBox/CommandLine" to="." method="_on_command_line_focus_exited"]
+[connection signal="pressed" from="Margin/PanelMargin/VBox/CommandContainer/HBox/CloseMenuButton" to="." method="_on_close_menu_button_pressed"]

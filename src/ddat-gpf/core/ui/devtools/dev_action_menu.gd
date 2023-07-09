@@ -20,31 +20,17 @@ extends Control
 # DevCommands automatically connect to caller tree exit and remove themselves
 #		if the caller exits the tree
 # Devs should use node-extended scripts in the scene tree storing their
-#	devActionMenu scripts (and include this in sample project) but any node
-#	can add an action button in this way
-
-#//TODO
-# Autoclose on dev action button selection
-# Optional close menu button functionality
-
-# Command button (different to overlay, F2 project default) to bring up
-# devActionMenu; working send command button and close menu button
-
-# Text Commands with send command button; DevCommands can also be accessed
-#	by string and the button does not have to be added
-
-# set up style resource/s for the buttons
-# set up font resource for the buttons
-
-# automatically generated button margins and panel sizees
-
-# Margin/PanelMargin/VBox/ActionButtonContainer needs to dynamically determine
-#	number of columns based on Margin/PanelMargin/VBox size and button width
+#	devActionMenu scripts (see sample project) but any node can add an
+#	action button in this way
 
 ##############################################################################
 
 # Key : ActionMenuItem
 var dev_action_register := {}
+
+# action that must be pressed to show the dev action menu
+# add this action to your project input map or update string to an existing action
+var show_menu_action := "show_action_menu"
 
 var is_command_line_focused := false
 onready var margin_node = $Margin
@@ -167,10 +153,12 @@ class ActionMenuItem:
 
 
 func _ready():
-#	default_dev_action_button_node.visible = false
-#	self.visible = false
+	default_dev_action_button_node.visible = false
+	self.visible = false
 	_setup_viewport_responsiveness()
 	_on_viewport_resized()
+	if not InputMap.has_action(show_menu_action):
+		GlobalLog.error(self, "project has not assigned show menu action")
 	#
 	var signal_setup = GlobalFunc.confirm_connection(
 			GlobalDebug, "add_dev_command",
@@ -180,6 +168,8 @@ func _ready():
 
 
 func _input(event):
+	if event.is_action_pressed(show_menu_action):
+		self.visible = !self.visible
 	if event.is_action_pressed("ui_accept") and is_command_line_focused:
 		_on_send_command_button_pressed()
 
@@ -221,6 +211,9 @@ func _on_add_dev_command(
 		dev_action_register[arg_key] = new_action_menu_item
 
 
+func _on_close_menu_button_pressed():
+	self.visible = false
+
 
 func _on_command_line_focus_entered():
 	is_command_line_focused = true
@@ -261,5 +254,4 @@ func _setup_viewport_responsiveness():
 		signal_outcome = viewport_root.connect("size_changed", self, "_on_viewport_resized")
 		if signal_outcome != OK:
 			GlobalLog.error(self, "DebugOverlay err setup _on_viewport_resized")
-
 
