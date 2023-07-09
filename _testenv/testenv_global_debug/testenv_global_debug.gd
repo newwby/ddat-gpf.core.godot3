@@ -37,11 +37,13 @@ extends Node2D
 func _ready():
 	pass # Replace with function body.
 	GlobalDebug.update_debug_overlay("key_example", 300)
-
+	GlobalDebug.update_debug_overlay("key_example", 305)
+	GlobalDebug.update_debug_overlay("key_example", 301, GlobalDebug.FLAG_OVERLAY_POSITION.BOTTOM_LEFT)
+	GlobalDebug.add_dev_command("test_command", self, "print_test_statement")
 
 # Called every frame. 'arg_delta' is the elapsed time since the previous frame.
 #func _process(arg_delta):
-#	pass
+#	GlobalDebug.update_debug_overlay("key_example", arg_delta)
 
 
 ##############################################################################
@@ -49,8 +51,8 @@ func _ready():
 # public methods
 
 
-#func example_method():
-#	pass
+func print_test_statement():
+	print("this is the testenvRoot_global_debug test print statement")
 
 
 ##############################################################################
