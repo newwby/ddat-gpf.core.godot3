@@ -43,7 +43,11 @@ extends Control
 
 ##############################################################################
 
+var is_command_line_focused := false
 onready var margin_node = $Margin
+onready var action_button_container_node = $Margin/PanelMargin/VBox/ActionButtonContainer
+onready var command_line_node = $Margin/PanelMargin/VBox/CommandContainer/HBox/CommandLine
+onready var default_dev_action_button_node = $DevActionButton
 
 ##############################################################################
 
@@ -63,19 +67,18 @@ class ActionMenuItem:
 	
 	func _init(
 			arg_key: String = "",
-			arg_button_node_ref: Button = null,
 			arg_caller_node_ref: Node = null,
-			arg_caller_method_name := ""):
+			arg_caller_method_name := "",
+			arg_button_node_ref: Button = null):
 		if arg_key == null\
-		or arg_button_node_ref == null\
 		or arg_caller_node_ref == null\
 		or arg_caller_method_name == "":
 			is_valid = false
 		else:
 			self.key = arg_key
-			self.button_node_ref = arg_button_node_ref
 			self.caller_node_ref = arg_caller_node_ref
 			self.caller_method_name = arg_caller_method_name
+			self.button_node_ref = arg_button_node_ref
 			is_valid = true
 	
 	
@@ -113,6 +116,7 @@ class ActionMenuItem:
 			button_node_ref = arg_value
 			
 			# proceed with setting up signals
+			signal_check = OK
 			signal_check = GlobalFunc.multi_connect(button_node_ref, self,
 					{"pressed": "_on_button_pressed",
 					"tree_entered": "_on_button_enter_or_exit_tree",
@@ -133,12 +137,16 @@ class ActionMenuItem:
 	# method 'call_dev_action'
 	func _on_button_pressed() -> int:
 		if is_valid == false:
+			GlobalLog.error(self, "dev action button invalid")
 			return ERR_UNCONFIGURED
 		if caller_node_ref == null:
+			GlobalLog.error(self, "dev action node ref null")
 			return ERR_INVALID_PARAMETER
 		if caller_node_ref.is_inside_tree() == false:
+			GlobalLog.error(self, "dev action node ref outside tree")
 			return ERR_DOES_NOT_EXIST
 		if caller_node_ref.has_method(caller_method_name) == false:
+			GlobalLog.error(self, "dev action method not found")
 			return ERR_METHOD_NOT_FOUND
 		else:
 			caller_node_ref.caller_method_name()
@@ -147,14 +155,51 @@ class ActionMenuItem:
 
 ##############################################################################
 
+# virt
+
 
 func _ready():
+#	default_dev_action_button_node.visible = false
+#	self.visible = false
 	_setup_viewport_responsiveness()
 	_on_viewport_resized()
 
 
+func _input(event):
+	if event.is_action_pressed("ui_accept") and is_command_line_focused:
+		_on_send_command_button_pressed()
+
+
+##############################################################################
+
+# public
+
+
+
+##############################################################################
+
+# private
+
+
+func _on_command_line_focus_entered():
+	is_command_line_focused = true
+
+
+func _on_command_line_focus_exited():
+	is_command_line_focused = false
+
+
+func _on_send_command_button_pressed():
+	_parse_dev_command(command_line_node.text)
+
+
 func _on_viewport_resized():
 	margin_node.rect_size = margin_node.get_viewport_rect().size
+
+
+func _parse_dev_command(arg_command: String):
+	pass
+	print("placeholder print ", arg_command)
 
 
 func _setup_viewport_responsiveness():
@@ -166,16 +211,4 @@ func _setup_viewport_responsiveness():
 		if signal_outcome != OK:
 			GlobalLog.error(self, "DebugOverlay err setup _on_viewport_resized")
 
-
-##############################################################################
-
-
-# Called when the node enters the scene tree for the first time.
-#func _ready():
-#	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
 
