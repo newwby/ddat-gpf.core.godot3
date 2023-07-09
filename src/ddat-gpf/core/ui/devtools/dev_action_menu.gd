@@ -135,7 +135,7 @@ class ActionMenuItem:
 			GlobalLog.error(self, "dev action method not found")
 			return ERR_METHOD_NOT_FOUND
 		else:
-			caller_node_ref.caller_method_name()
+			caller_node_ref.call(caller_method_name)
 			return OK
 	
 	
@@ -202,6 +202,7 @@ func _on_add_dev_command(
 		action_button_container_node.call_deferred("add_child", new_action_menu_button)
 		yield(new_action_menu_button, "tree_entered")
 		new_action_menu_button.visible = true
+		new_action_menu_button.text = arg_key
 		new_action_menu_item =\
 				ActionMenuItem.new(arg_key, arg_caller, arg_caller_method,
 				new_action_menu_button)
