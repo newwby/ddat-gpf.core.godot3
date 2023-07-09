@@ -43,6 +43,9 @@ extends Control
 
 ##############################################################################
 
+# Key : ActionMenuItem
+var dev_action_register := {}
+
 var is_command_line_focused := false
 onready var margin_node = $Margin
 onready var action_button_container_node = $Margin/PanelMargin/VBox/ActionButtonContainer
@@ -64,6 +67,7 @@ class ActionMenuItem:
 	var is_valid := false
 	var in_tree := false
 	var is_button_join_queued := false
+	var is_console_command_allowed := false
 	
 	func _init(
 			arg_key: String = "",
@@ -128,16 +132,12 @@ class ActionMenuItem:
 			in_tree = button_node_ref.is_inside_tree()
 	
 	
-	func _on_button_enter_or_exit_tree():
-		in_tree = button_node_ref.is_inside_tree()
-	
-	
 	# returns whether the call was successful (whether the method does
 	#	anything or not)
 	# method 'call_dev_action'
-	func _on_button_pressed() -> int:
+	func run_command() -> int:
 		if is_valid == false:
-			GlobalLog.error(self, "dev action button invalid")
+			GlobalLog.error(self, "dev action invalid")
 			return ERR_UNCONFIGURED
 		if caller_node_ref == null:
 			GlobalLog.error(self, "dev action node ref null")
@@ -151,6 +151,14 @@ class ActionMenuItem:
 		else:
 			caller_node_ref.caller_method_name()
 			return OK
+	
+	
+	func _on_button_enter_or_exit_tree():
+		in_tree = button_node_ref.is_inside_tree()
+	
+	
+	func _on_button_pressed():
+		var _discard_return = run_command()
 
 
 ##############################################################################
@@ -163,6 +171,12 @@ func _ready():
 #	self.visible = false
 	_setup_viewport_responsiveness()
 	_on_viewport_resized()
+	#
+	var signal_setup = GlobalFunc.confirm_connection(
+			GlobalDebug, "add_dev_command",
+			self, "_on_add_dev_command")
+	if signal_setup != OK:
+		GlobalLog.error(self, "error setting up devActionMenu GlobalDebug connection")
 
 
 func _input(event):
@@ -175,10 +189,37 @@ func _input(event):
 # public
 
 
+#
+
 
 ##############################################################################
 
 # private
+
+
+func _on_add_dev_command(
+		arg_key: String,
+		arg_caller: Object,
+		arg_caller_method: String,
+		arg_add_menu_button: bool = true,
+		arg_add_console_command: bool = true):
+	var new_action_menu_item: ActionMenuItem = null
+	if not arg_add_menu_button:
+		new_action_menu_item =\
+				ActionMenuItem.new(arg_key, arg_caller, arg_caller_method)
+	else:
+		var new_action_menu_button = default_dev_action_button_node.duplicate()
+		action_button_container_node.call_deferred("add_child", new_action_menu_button)
+		yield(new_action_menu_button, "tree_entered")
+		new_action_menu_button.visible = true
+		new_action_menu_item =\
+				ActionMenuItem.new(arg_key, arg_caller, arg_caller_method,
+				new_action_menu_button)
+	# add dev command
+	if new_action_menu_item != null:
+		new_action_menu_item.is_console_command_allowed = arg_add_console_command
+		dev_action_register[arg_key] = new_action_menu_item
+
 
 
 func _on_command_line_focus_entered():
@@ -197,9 +238,19 @@ func _on_viewport_resized():
 	margin_node.rect_size = margin_node.get_viewport_rect().size
 
 
+# arg_command should correspond to the given ActionMenuItem key (which
+#	was set in add_dev_command)
 func _parse_dev_command(arg_command: String):
-	pass
-	print("placeholder print ", arg_command)
+	command_line_node.text = ""
+	var command_action_menu_item: ActionMenuItem = null
+	if not arg_command in dev_action_register.keys():
+		GlobalLog.info(self, "command {0} not found".format([arg_command]))
+	else:
+		command_action_menu_item = dev_action_register[arg_command]
+		if command_action_menu_item != null:
+			if command_action_menu_item.is_console_command_allowed:
+				if command_action_menu_item.run_command() != OK:
+					GlobalLog.error(self, "key exists but command invalid")
 
 
 func _setup_viewport_responsiveness():
