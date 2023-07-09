@@ -99,6 +99,8 @@ func _ready():
 	# set debug overlay based on current viewport size
 	_setup_viewport_responsiveness()
 	_on_viewport_resized()
+	if not InputMap.has_action(show_menu_action):
+		GlobalLog.error(self, "project has not assigned show menu action")
 
 
 func _input(event):
