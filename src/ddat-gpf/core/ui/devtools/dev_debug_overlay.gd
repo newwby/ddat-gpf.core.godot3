@@ -1,4 +1,4 @@
-extends Control
+extends ResponsiveControl
 
 #class_name DevDebugOverlay
 
@@ -96,9 +96,6 @@ func _ready():
 			"update_debug_overlay_item", self, "_on_update_debug_overlay_item") 
 	if signal_outcome != OK:
 		GlobalLog.error(self, "DebugOverlay err setup update_debug_overlay_item")
-	# set debug overlay based on current viewport size
-	_setup_viewport_responsiveness()
-	_on_viewport_resized()
 	if not InputMap.has_action(show_menu_action):
 		GlobalLog.error(self, "project has not assigned show menu action")
 
@@ -189,20 +186,6 @@ func _on_update_debug_overlay_item(arg_item_key, arg_item_value, arg_item_positi
 				_update_item(arg_item_key, arg_item_value)
 			else:
 				_add_item(arg_item_key, arg_item_value, container_position)
-
-
-func _on_viewport_resized():
-	margin_node.rect_size = margin_node.get_viewport_rect().size
-
-
-func _setup_viewport_responsiveness():
-	# set up handling for if viewport resizes
-	var viewport_root: Viewport = get_viewport()
-	if viewport_root != null:
-		var signal_outcome = OK
-		signal_outcome = viewport_root.connect("size_changed", self, "_on_viewport_resized")
-		if signal_outcome != OK:
-			GlobalLog.error(self, "DebugOverlay err setup _on_viewport_resized")
 
 
 # called from _on_update_debug_overlay_item

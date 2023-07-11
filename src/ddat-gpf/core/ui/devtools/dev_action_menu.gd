@@ -1,4 +1,4 @@
-extends Control
+extends ResponsiveControl
 
 #class_name DevActionMenu
 
@@ -155,8 +155,6 @@ class ActionMenuItem:
 func _ready():
 	default_dev_action_button_node.visible = false
 	self.visible = false
-	_setup_viewport_responsiveness()
-	_on_viewport_resized()
 	if not InputMap.has_action(show_menu_action):
 		GlobalLog.error(self, "project has not assigned show menu action")
 	#
@@ -228,10 +226,6 @@ func _on_send_command_button_pressed():
 	_parse_dev_command(command_line_node.text)
 
 
-func _on_viewport_resized():
-	margin_node.rect_size = margin_node.get_viewport_rect().size
-
-
 # arg_command should correspond to the given ActionMenuItem key (which
 #	was set in add_dev_command)
 func _parse_dev_command(arg_command: String):
@@ -245,14 +239,4 @@ func _parse_dev_command(arg_command: String):
 			if command_action_menu_item.is_console_command_allowed:
 				if command_action_menu_item.run_command() != OK:
 					GlobalLog.error(self, "key exists but command invalid")
-
-
-func _setup_viewport_responsiveness():
-	# set up handling for if viewport resizes
-	var viewport_root: Viewport = get_viewport()
-	if viewport_root != null:
-		var signal_outcome = OK
-		signal_outcome = viewport_root.connect("size_changed", self, "_on_viewport_resized")
-		if signal_outcome != OK:
-			GlobalLog.error(self, "DebugOverlay err setup _on_viewport_resized")
 
