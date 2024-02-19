@@ -49,6 +49,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/ddat-gpf/core/classes/class_responsive_control.gd"
 }, {
+"base": "TextureButton",
+"class": "TextureProgressButton",
+"language": "GDScript",
+"path": "res://src/ddat-gpf/core/ui/class_texture_progress_button.gd"
+}, {
 "base": "Node",
 "class": "UnitTest",
 "language": "GDScript",
@@ -83,6 +88,7 @@ _global_script_class_icons={
 "GameDataContainer3": "",
 "GameGlobal": "",
 "ResponsiveControl": "",
+"TextureProgressButton": "",
 "UnitTest": "",
 "UnitTestGetDirPaths": "",
 "UnitTestLogging": "",
