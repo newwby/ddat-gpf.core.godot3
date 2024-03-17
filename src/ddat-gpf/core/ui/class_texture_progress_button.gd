@@ -19,6 +19,28 @@ class_name TextureProgressButton
 
 ##############################################################################
 
+<<<<<<< Updated upstream
+=======
+#//TODO (TextureProgress properties not implemented
+#	nine_patch_stretch
+#	stretch_margin_left
+#	stretch_margin_top
+#	stretch_margin_right
+#	stretch_margin_bottom
+#	progress_offset
+#	center_offset
+#	texture_over
+#	tint_over
+
+#//TODO
+# texture updating when hovered/etc
+# debug display value/max value & debug export
+# call update texture on setters for texture changes and button state changes
+# remove ddat behaviour for public version (see '#//DDAT.GPF behaviour')
+
+##############################################################################
+
+>>>>>>> Stashed changes
 signal activated()
 
 # from TextureProgress docs
@@ -343,6 +365,7 @@ func _ready_overlay() -> void:
 		_update_overlay_texture()
 		_update_range_values()
 	else:
+<<<<<<< Updated upstream
 		print(self, "unable to find progress_overlay, setup failed")
 
 
@@ -353,6 +376,20 @@ func _ready_signals() -> void:
 	signals_are_valid = signals_are_valid and (self.connect("focus_exited", self, "_on_focus_exited") == OK)
 	signals_are_valid = signals_are_valid and (self.connect("button_down", self, "_on_button_down") == OK)
 	signals_are_valid = signals_are_valid and (self.connect("button_up", self, "_on_button_up") == OK)
+=======
+		#//DDAT.GPF behaviour
+		GlobalLog.error(self, "unable to find progress_overlay, setup failed")
+
+
+func _ready_signals() -> void:
+	#//DDAT.GPF behaviour
+	GlobalFunc.confirm_connection(self, "mouse_entered", self, "_on_mouse_entered")
+	GlobalFunc.confirm_connection(self, "mouse_exited", self, "_on_mouse_exited")
+	GlobalFunc.confirm_connection(self, "focus_entered", self, "_on_focus_entered")
+	GlobalFunc.confirm_connection(self, "focus_exited", self, "_on_focus_exited")
+	GlobalFunc.confirm_connection(self, "button_down", self, "_on_button_down")
+	GlobalFunc.confirm_connection(self, "button_up", self, "_on_button_up")
+>>>>>>> Stashed changes
 
 
 func _update_debug_label() -> void:
