@@ -1,3 +1,11 @@
+# Legacy!
+
+This code is preserved for compatibility but is no longer actively developed. The repository is an addon for Godot version 3.x and does not support modern versions of Godot.
+
+For a modern version of this same framework please see https://github.com/newwby/Godot-Prototyping-Framework
+
+---
+
 # ddat-gpf.core
 
 ddat-gpf.Core includes all the required singletons for all modules within the ddat-gpf (Godot Prototyping Framework).
